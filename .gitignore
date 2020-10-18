@@ -80,3 +80,15 @@
 /.vs/MandelAmp/v16/Browse.VC.db
 /.vs/Mandel/v16/Browse.VC.db
 /.vs/Mandel/v16/.suo
+/x64/Release/MandelbrotRenderer.pdb
+/x64/Release/MandelbrotRenderer.lib
+/x64/Release/MandelbrotRenderer.ipdb
+/x64/Release/MandelbrotRenderer.iobj
+/x64/Release/MandelbrotRenderer.exp
+/x64/Release/MandelbrotRenderer.dll
+/x64/Debug/MandelbrotRenderer.pdb
+/x64/Debug/MandelbrotRenderer.lib
+/x64/Debug/MandelbrotRenderer.ilk
+/x64/Debug/MandelbrotRenderer.exp
+/x64/Debug/MandelbrotRenderer.dll
+/MandelbrotViewer/obj/x64/Release/MandelbrotViewer.csprojAssemblyReference.cache
