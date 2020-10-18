@@ -178,12 +178,16 @@ namespace MandelbrotViewer
 
         }
 
-
         private void Render()
         {
+            
             switch (FractalSetIndex)
             {
                 case 0:
+                    //var mset = MandelbrotAPI.CalculateMandelbrot(true, coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                    //var palette = MandelbrotAPI.StandardPalette(maxIterations);
+                    //var result = MandelbrotAPI.PaletteTransform(mset, palette);
+                    //MandelbrotAPI.RenderArrayToDevice(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, result);
                     MandelbrotAPI.RenderBasic(useGpu, this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
                     break;
                 case 1:

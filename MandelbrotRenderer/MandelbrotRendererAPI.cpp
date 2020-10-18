@@ -214,23 +214,23 @@ namespace
         DeleteDC(hmemDC);
     }
 
-}
+    void sendToDisplay(HDC hdc, int screenWidth, int screenHeight, const unsigned* bitmapData)
+    {
+        HDC hmemDC = CreateCompatibleDC(hdc);
+        HBITMAP bmp = CreateCompatibleBitmap(hdc, screenWidth, screenHeight);
+        SelectObject(hmemDC, bmp);
 
-void sendToDisplay(HDC hdc, int screenWidth, int screenHeight, const unsigned* bitmapData)
-{
-    HDC hmemDC = CreateCompatibleDC(hdc);
-    HBITMAP bmp = CreateCompatibleBitmap(hdc, screenWidth, screenHeight);
-    SelectObject(hmemDC, bmp);
+        BITMAP bmpBuffer;
+        GetObject(bmp, sizeof(BITMAP), &bmpBuffer);
 
-    BITMAP bmpBuffer;
-    GetObject(bmp, sizeof(BITMAP), &bmpBuffer);
+        const auto& bi = createBitmapInfoHeader(bmpBuffer.bmWidth, bmpBuffer.bmHeight, 32);
+        SetDIBits(hmemDC, bmp, 0, screenHeight, bitmapData, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+        BitBlt(hdc, 0, 0, screenWidth, screenHeight, hmemDC, 0, 0, SRCCOPY);
 
-    const auto& bi = createBitmapInfoHeader(bmpBuffer.bmWidth, bmpBuffer.bmHeight, 32);
-    SetDIBits(hmemDC, bmp, 0, screenHeight, bitmapData, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
-    BitBlt(hdc, 0, 0, screenWidth, screenHeight, hmemDC, 0, 0, SRCCOPY);
+        DeleteObject(bmp);
+        DeleteDC(hmemDC);
+    }
 
-    DeleteObject(bmp);
-    DeleteDC(hmemDC);
 }
 
 extern "C" void render(bool gpu, HDC hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax)
@@ -309,4 +309,76 @@ extern "C" void saveBuddhaJPG(HDC hdc, bool antiBuddha, int screenWidth, int scr
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
     mset.CalculateBuddha(antiBuddha, maxIterations);
     saveToJPEG(hdc, screenWidth, screenHeight, mset, filename);
+}
+
+//  Managed client API to calculate the set data only
+extern "C" DLL_API void calculateMandelbrot(bool gpu, int width, int height, int maxIterations, double xMin, double xMax, double yMin, double yMax, SAFEARRAY** ppsa)
+{
+    const unsigned array_size = width * height;
+    
+    SAFEARRAYBOUND rgsa;
+    rgsa.lLbound = 0;
+    rgsa.cElements = array_size;
+    *ppsa = SafeArrayCreate(VT_I4, 1, &rgsa);
+    
+    unsigned* result;
+    SafeArrayLock(*ppsa);
+    SafeArrayAccessData(*ppsa, (void HUGEP**)&result);
+
+    if (gpu)
+        MandelbrotSet<double>::gpuMandelbrotKernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+    else
+        MandelbrotSet<double>::cpuMandelbrotKernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+
+    SafeArrayUnaccessData(*ppsa);
+    SafeArrayUnlock(*ppsa);
+}
+
+//  Managed client API to transform data according to an input palette.  
+//  The operation is ppsaResult[i] = palette[input[i]].
+extern "C" void paletteTransform(SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)
+{
+    SafeArrayLock(input);
+    unsigned array_size = input->rgsabound->cElements;
+    unsigned* input_data;
+    SafeArrayAccessData(input, (void HUGEP**)&input_data);
+
+    SafeArrayLock(palette);
+    unsigned palette_size = palette->rgsabound->cElements;
+    unsigned* palette_data;
+    SafeArrayAccessData(palette, (void HUGEP**)&palette_data);
+
+    SAFEARRAYBOUND rgsa;
+    rgsa.lLbound = 0;
+    rgsa.cElements = array_size;
+    *ppsaResult = SafeArrayCreate(VT_I4, 1, &rgsa);
+
+    unsigned* result;
+    SafeArrayLock(*ppsaResult);
+    SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
+
+    MandelbrotSet<double>::gpuPaletteKernel(array_size, input_data, result, palette_size, (MandelbrotSet<double>::rgb*)palette_data);
+
+    SafeArrayUnaccessData(*ppsaResult);
+    SafeArrayUnlock(*ppsaResult);
+
+    SafeArrayUnaccessData(palette);
+    SafeArrayUnlock(palette);
+
+    SafeArrayUnaccessData(input);
+    SafeArrayUnlock(input);
+}
+
+//  Managed client API to render an array of data to the given device context
+extern "C" void renderArrayToDevice(HDC hdc, int width, int height, SAFEARRAY* input)
+{
+    SafeArrayLock(input);
+    unsigned array_size = input->rgsabound->cElements;
+    unsigned* input_data;
+    SafeArrayAccessData(input, (void HUGEP**) & input_data);
+
+    sendToDisplay(hdc, width, height, input_data);
+
+    SafeArrayUnaccessData(input);
+    SafeArrayUnlock(input);
 }

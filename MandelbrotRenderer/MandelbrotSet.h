@@ -12,6 +12,7 @@ namespace MathsEx
 {
     template <class RealType> class MandelbrotSet
     {
+    public:
         struct rgb
         {
             rgb() : b(0), g(0), r(0), pad(0xFF) {}
@@ -20,7 +21,7 @@ namespace MathsEx
             unsigned char r;
             unsigned char pad;
         };
-    public:
+
         typedef RealType FloatingPointType;
 
         const unsigned* data() const { return m_arr; }
