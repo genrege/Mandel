@@ -17,4 +17,5 @@ Future functionality:
 - the above will allow fire and forget tracking and zooming to specific points
 - rotate the coordinate system for funkier videos
 - add 3D rendering/fly-throughs of the sets
+- palette editing (possibly an external editing program with import into the render engine)
 
