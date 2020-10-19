@@ -54,7 +54,6 @@
             this.mainSplitter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).BeginInit();
             this.SplitControlContainer.Panel1.SuspendLayout();
-            this.SplitControlContainer.Panel2.SuspendLayout();
             this.SplitControlContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).BeginInit();
             this.SuspendLayout();
@@ -105,9 +104,6 @@
             this.SplitControlContainer.Panel1.Controls.Add(this.label1);
             this.SplitControlContainer.Panel1.Controls.Add(this.txtMaxIterations);
             this.SplitControlContainer.Panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.SplitControlContainer_Panel1_Paint);
-            // 
-            // SplitControlContainer.Panel2
-            // 
             this.SplitControlContainer.Size = new System.Drawing.Size(280, 654);
             this.SplitControlContainer.SplitterDistance = 467;
             this.SplitControlContainer.TabIndex = 4;
@@ -118,7 +114,7 @@
             this.cbWhichSet.FormattingEnabled = true;
             this.cbWhichSet.Items.AddRange(new object[] {
             "Mandelbrot",
-            "Julia (right mouse to control)",
+            "Julia",
             "Buddha",
             "Anti-Buddha",
             "Mandelbrot Experimental API",
@@ -336,8 +332,6 @@
             this.mainSplitter.ResumeLayout(false);
             this.SplitControlContainer.Panel1.ResumeLayout(false);
             this.SplitControlContainer.Panel1.PerformLayout();
-            this.SplitControlContainer.Panel2.ResumeLayout(false);
-            this.SplitControlContainer.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).EndInit();
             this.SplitControlContainer.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).EndInit();
