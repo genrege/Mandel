@@ -19,18 +19,6 @@ namespace MandelbrotViewer
         public event EventHandler StatusChange;
         public event EventHandler PositionChange;
 
-        CoordinateSpace coord_ = null;
-
-        public CoordinateSpace coordinateSpace()
-        {
-            return coord_;
-        }
-
-        public int MaxIterations { get; set; }
-
-        double cx_ = 0.0;
-        double cy_ = 0.0;
-
         public RenderPanel()
         {
             InitializeComponent();
@@ -40,17 +28,27 @@ namespace MandelbrotViewer
             coord_.Align(-1.0, 0.0, Width / 2, Height / 2);
         }
 
-        private void RenderPanel_Load(object sender, EventArgs e)
+        CoordinateSpace coord_ = null;
+        public double MouseDownSetX {get; set;}
+        public double MouseDownSetY { get; set;}
+        public double CurrentSetX { get; set; }
+        public double CurrentSetY { get; set; }
+        public double JuliaSetX { get; set; }
+        public double JuliaSetY { get; set; }
+
+        public int MaxIterations { get; set; }
+        public int FractalSetIndex { get; set; }
+
+        public bool useGpu { get; set; }
+        int[] palette_ = null;
+
+        public CoordinateSpace coordinateSpace()
         {
+            return coord_;
         }
 
         protected override void OnPaintBackground(PaintEventArgs e)
         {
-        }
-
-        private void RenderPanel_MouseClick(object sender, MouseEventArgs e)
-        {
-            var cc = coord_.SetFromScreen(e.Location.X, e.Location.Y);
         }
 
         private void RenderPanel_MouseDown(object sender, MouseEventArgs e)
@@ -61,19 +59,14 @@ namespace MandelbrotViewer
 
                 var cc = coord_.SetFromScreen(e.Location.X, e.Location.Y);
 
-                cx_ = cc.X;
-                cy_ = cc.Y;
+                MouseDownSetX = cc.X;
+                MouseDownSetY = cc.Y;
             }
         }
 
         private void RenderPanel_MouseUp(object sender, MouseEventArgs e)
         {
             Capture = false;
-        }
-
-        private void RenderPanel_MouseLeave(object sender, EventArgs e)
-        {
-
         }
 
         private void RenderPanel_Resize(object sender, EventArgs e)
@@ -83,30 +76,23 @@ namespace MandelbrotViewer
             Invalidate();
         }
 
-        double mx_ = 0.0;
-        double my_ = 0.0;
-
-        public double CtrlX { get; set; }
-        public double CtrlY { get; set; }
-
         private void RenderPanel_MouseMove(object sender, MouseEventArgs e)
         {
             var cc = coord_.SetFromScreen(e.Location.X, e.Location.Y);
-
-            mx_ = cc.X;
-            my_ = cc.Y;
+            CurrentSetX = cc.X;
+            CurrentSetY = cc.Y;
 
             if (MouseButtons == MouseButtons.Left && Control.ModifierKeys == Keys.Control)
             {
-                CtrlX = mx_;
-                CtrlY = my_;
+                JuliaSetX = CurrentSetX;
+                JuliaSetY = CurrentSetY;
                 if (FractalSetIndex == 1 || FractalSetIndex == 5)
                     Render();
             }
             else if (MouseButtons == MouseButtons.Left && Capture)
             {
-                double nx = cx_ - mx_;
-                double ny = cy_ - my_;
+                double nx = MouseDownSetX - CurrentSetX;
+                double ny = MouseDownSetY - CurrentSetY;
 
                 coord_.ShiftSpace(nx, ny);
 
@@ -124,8 +110,6 @@ namespace MandelbrotViewer
                 handler.Invoke(this, new EventArgs());
             }
         }
-
-        public bool useGpu { get; set; }
 
         public void CentreOn(double px, double py)
         {
@@ -175,7 +159,6 @@ namespace MandelbrotViewer
 
         }
 
-        int[] palette_ = null;
         private void Render()
         {
             var gr = CreateGraphics();
@@ -187,7 +170,7 @@ namespace MandelbrotViewer
                     MandelbrotAPI.RenderBasic(hdc, useGpu, MaxIterations, coord_);
                     break;
                 case 1:
-                    MandelbrotAPI.RenderJulia(hdc, useGpu, MaxIterations, CtrlX, CtrlY, coord_);
+                    MandelbrotAPI.RenderJulia(hdc, useGpu, MaxIterations, JuliaSetX, JuliaSetY, coord_);
                     break;
                 case 2:
                     MandelbrotAPI.RenderBuddha(hdc, MaxIterations, coord_);
@@ -206,7 +189,7 @@ namespace MandelbrotViewer
                 case 5:
                     {
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
-                        var calculation_data = MandelbrotAPI.CalculateJulia(CtrlX, CtrlY, useGpu, MaxIterations, coord_);
+                        var calculation_data = MandelbrotAPI.CalculateJulia(JuliaSetX, JuliaSetY, useGpu, MaxIterations, coord_);
                         var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
                     }
@@ -248,24 +231,6 @@ namespace MandelbrotViewer
                 handler1.Invoke(this, new SetScaleInfo(cc.X, cc.Y, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax));
             }
         }
-
-        public double mouseX
-        {
-            get
-            {
-                return mx_;
-            }
-        }
-
-        public double mouseY
-        {
-            get
-            {
-                return my_;
-            }
-        }
-
-        public int FractalSetIndex { get; set; }
     }
 
     public class SetScaleInfo : EventArgs

@@ -53,7 +53,7 @@ namespace MandelbrotViewer
 
         private void RenderPanel_OnStatusChange(object sender, EventArgs e)
         {
-            txtMouseCoords.Text = string.Format("{0}, {1}", renderPanel.mouseX, renderPanel.mouseY);
+            txtMouseCoords.Text = string.Format("{0}, {1}", renderPanel.CurrentSetX, renderPanel.CurrentSetY);
         }
 
         private void RenderPanel_OnPositionChange(object sender, EventArgs e)
@@ -227,7 +227,7 @@ namespace MandelbrotViewer
                     if (renderPanel.FractalSetIndex == 0)
                         MandelbrotAPI.SaveJPGToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 1)
-                        MandelbrotAPI.SaveJuliaJPGToFile(renderPanel.CtrlX, renderPanel.CtrlY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveJuliaJPGToFile(renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 2)
                         MandelbrotAPI.SaveBuddhaJPGToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 3)
@@ -241,7 +241,7 @@ namespace MandelbrotViewer
                     }
                     else if (renderPanel.FractalSetIndex == 5)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateJulia(renderPanel.CtrlX, renderPanel.CtrlY, true,int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateJulia(renderPanel.JuliaSetX, renderPanel.JuliaSetY, true,int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
@@ -266,7 +266,7 @@ namespace MandelbrotViewer
                     if (renderPanel.FractalSetIndex == 0)
                         MandelbrotAPI.SaveBitmapToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 1)
-                        MandelbrotAPI.SaveJuliaBitmapToFile(renderPanel.CtrlX, renderPanel.CtrlY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveJuliaBitmapToFile(renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 2)
                         MandelbrotAPI.SaveBuddhaBitmapToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 3)
@@ -280,7 +280,7 @@ namespace MandelbrotViewer
                     }
                     else if (renderPanel.FractalSetIndex == 5)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateJulia(renderPanel.CtrlX, renderPanel.CtrlY, true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateJulia(renderPanel.JuliaSetX, renderPanel.JuliaSetY, true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
@@ -313,6 +313,11 @@ namespace MandelbrotViewer
         {
             renderPanel.FractalSetIndex = cbWhichSet.SelectedIndex;
             renderPanel.Invalidate();
+        }
+
+        private void menuMain_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
         }
     }
 }

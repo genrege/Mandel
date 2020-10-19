@@ -49,12 +49,12 @@
             this.txtMouseCoords = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txtMaxIterations = new System.Windows.Forms.TextBox();
-            this.directoryEntry1 = new System.DirectoryServices.DirectoryEntry();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplitter)).BeginInit();
             this.mainSplitter.Panel1.SuspendLayout();
             this.mainSplitter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).BeginInit();
             this.SplitControlContainer.Panel1.SuspendLayout();
+            this.SplitControlContainer.Panel2.SuspendLayout();
             this.SplitControlContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).BeginInit();
             this.SuspendLayout();
@@ -105,6 +105,9 @@
             this.SplitControlContainer.Panel1.Controls.Add(this.label1);
             this.SplitControlContainer.Panel1.Controls.Add(this.txtMaxIterations);
             this.SplitControlContainer.Panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.SplitControlContainer_Panel1_Paint);
+            // 
+            // SplitControlContainer.Panel2
+            // 
             this.SplitControlContainer.Size = new System.Drawing.Size(280, 654);
             this.SplitControlContainer.SplitterDistance = 467;
             this.SplitControlContainer.TabIndex = 4;
@@ -333,6 +336,8 @@
             this.mainSplitter.ResumeLayout(false);
             this.SplitControlContainer.Panel1.ResumeLayout(false);
             this.SplitControlContainer.Panel1.PerformLayout();
+            this.SplitControlContainer.Panel2.ResumeLayout(false);
+            this.SplitControlContainer.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).EndInit();
             this.SplitControlContainer.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).EndInit();
@@ -347,7 +352,6 @@
         private System.Windows.Forms.TextBox txtMaxIterations;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TrackBar trackBarMaxIterations;
-        private System.DirectoryServices.DirectoryEntry directoryEntry1;
         private System.Windows.Forms.SplitContainer SplitControlContainer;
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.TextBox txtXMax;
@@ -363,6 +367,7 @@
         private System.Windows.Forms.Button btnReset;
         private System.Windows.Forms.Button btnSaveBMP;
         private System.Windows.Forms.ComboBox cbWhichSet;
+        private System.Windows.Forms.MenuStrip menuMain;
     }
 }
 
