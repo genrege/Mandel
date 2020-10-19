@@ -10,14 +10,14 @@ namespace MandelbrotViewer
 {
     public class MandelbrotAPI
     {
-        public static void RenderBasic(bool gpu, IntPtr hdc, int maxIterations, CoordinateSpace cspace)
+        public static void RenderBasic(IntPtr hdc, bool gpu, int maxIterations, CoordinateSpace cspace)
         {
-            MandelbrotDLLInterface.render(gpu, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
+            MandelbrotDLLInterface.render(hdc, gpu, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
         }
 
-        public static void RenderJulia(double re, double im, IntPtr hdc, int maxIterations, CoordinateSpace cspace)
+        public static void RenderJulia(IntPtr hdc, int maxIterations, double re, double im, CoordinateSpace cspace)
         {
-            MandelbrotDLLInterface.renderJulia(re, im, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
+            MandelbrotDLLInterface.renderJulia(hdc, maxIterations, re, im, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
         }
 
         public static void RenderBuddha(IntPtr hdc, int maxIterations, CoordinateSpace cspace)

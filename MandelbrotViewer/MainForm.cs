@@ -37,7 +37,7 @@ namespace MandelbrotViewer
             renderPanel.PositionChange += RenderPanel_OnPositionChange;
             overviewPanel.OnOverviewSetPosition += OnOverviewSetPosition;
 
-            trackBarMaxIterations.Value = renderPanel.maxIterations;
+            trackBarMaxIterations.Value = renderPanel.MaxIterations;
             renderPanel.useGpu = checkBox1.Checked;
             sliderMax.Text = "6000";
             txtMaxIterations.Text = "100";
@@ -88,7 +88,7 @@ namespace MandelbrotViewer
             {
                 if (maxIter >= trackBarMaxIterations.Minimum && maxIter <= trackBarMaxIterations.Maximum)
                 {
-                    renderPanel.maxIterations = maxIter;
+                    renderPanel.MaxIterations = maxIter;
                     trackBarMaxIterations.Value = maxIter;
                     renderPanel.Invalidate();
                 }

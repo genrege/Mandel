@@ -11,8 +11,8 @@
 #endif
 
 //These functions can be used by any client.
-extern "C" DLL_API void render(bool gpu, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);
-extern "C" DLL_API void renderJulia(double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);
+extern "C" DLL_API void render(HDC hdc, bool gpu, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);
+extern "C" DLL_API void renderJulia(HDC hdc, int maxIterations, double re, double im, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);
 extern "C" DLL_API void renderBuddha(HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);
 extern "C" DLL_API void saveMandelbrotBitmap(HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename);
 extern "C" DLL_API void saveJuliaBitmap(double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename);

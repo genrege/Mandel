@@ -230,10 +230,9 @@ namespace
         DeleteObject(bmp);
         DeleteDC(hmemDC);
     }
-
 }
 
-extern "C" void render(bool gpu, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
+extern "C" void render(HDC hdc, bool gpu, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -245,7 +244,7 @@ extern "C" void render(bool gpu, HDC hdc, int maxIterations, int screenWidth, in
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
 
-extern "C" void renderJulia(double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
+extern "C" void renderJulia(HDC hdc, int maxIterations, double re, double im, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
