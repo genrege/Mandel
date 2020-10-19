@@ -334,6 +334,26 @@ extern "C" DLL_API void calculateMandelbrot(bool gpu, int width, int height, int
     SafeArrayUnlock(*ppsa);
 }
 
+//  Managed client API to calculate the Julia set data only
+extern "C" DLL_API void calculateJulia(double re, double im, int width, int height, int maxIterations, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+{
+    const unsigned array_size = width * height;
+
+    SAFEARRAYBOUND rgsa;
+    rgsa.lLbound = 0;
+    rgsa.cElements = array_size;
+    *ppsa = SafeArrayCreate(VT_I4, 1, &rgsa);
+
+    unsigned* result;
+    SafeArrayLock(*ppsa);
+    SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
+
+    MandelbrotSet<double>::gpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+
+    SafeArrayUnaccessData(*ppsa);
+    SafeArrayUnlock(*ppsa);
+}
+
 //  Managed client API to transform data according to an input palette.  
 //  The operation is ppsaResult[i] = palette[input[i]].
 extern "C" void paletteTransform(SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)

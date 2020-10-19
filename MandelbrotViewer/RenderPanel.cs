@@ -100,7 +100,7 @@ namespace MandelbrotViewer
             {
                 CtrlX = mx_;
                 CtrlY = my_;
-                if (FractalSetIndex == 1)
+                if (FractalSetIndex == 1 || FractalSetIndex == 5)
                     Render();
             }
             if (MouseButtons == MouseButtons.Left && Capture)
@@ -178,9 +178,12 @@ namespace MandelbrotViewer
 
         }
 
+        int[] palette_ = null;
         private void Render()
         {
-            
+            if (palette_ == null)
+                palette_ = MandelbrotAPI.StandardPalette(maxIterations);
+
             switch (FractalSetIndex)
             {
                 case 0:
@@ -190,16 +193,24 @@ namespace MandelbrotViewer
                     MandelbrotAPI.RenderJulia(CtrlX, CtrlY, this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
                     break;
                 case 2:
-                    MandelbrotAPI.RenderBuddha(this.CreateGraphics().GetHdc(), false, coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                    MandelbrotAPI.RenderBuddha(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
                     break;
                 case 3:
-                    MandelbrotAPI.RenderBuddha(this.CreateGraphics().GetHdc(), true, coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                    MandelbrotAPI.RenderAntiBuddha(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
                     break;
                 case 4:
-                    var calculation_data = MandelbrotAPI.CalculateMandelbrot(true, coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
-                    var palette = MandelbrotAPI.StandardPalette(maxIterations);
-                    var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
-                    MandelbrotAPI.RenderArrayToDevice(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, result);
+                    {
+                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(true, coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                        var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
+                        MandelbrotAPI.RenderArrayToDevice(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                    }
+                    break;
+                case 5:
+                    {
+                        var calculation_data = MandelbrotAPI.CalculateJulia(CtrlX, CtrlY, coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                        var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
+                        MandelbrotAPI.RenderArrayToDevice(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                    }
                     break;
             }
         }

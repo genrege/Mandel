@@ -216,19 +216,26 @@ namespace MandelbrotViewer
 
                 }
 
-                bool antiBuddha = renderPanel.FractalSetIndex == 3;
-
                 if (System.IO.Path.GetExtension(saveBmpDialog.FileName) == ".jpg")
                 {
                     if (renderPanel.FractalSetIndex == 0)
                         MandelbrotAPI.SaveJPGToFile(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 1)
                         MandelbrotAPI.SaveJuliaJPGToFile(renderPanel.CtrlX, renderPanel.CtrlY, this.CreateGraphics().GetHdc(), (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
-                    else if (renderPanel.FractalSetIndex == 2 || renderPanel.FractalSetIndex == 3)
-                        MandelbrotAPI.SaveBuddhaJPGToFile(this.CreateGraphics().GetHdc(), antiBuddha, (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
+                    else if (renderPanel.FractalSetIndex == 2)
+                        MandelbrotAPI.SaveBuddhaJPGToFile(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
+                    else if (renderPanel.FractalSetIndex == 3)
+                        MandelbrotAPI.SaveAntiBuddhaJPGToFile(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 4)
                     {
                         var calculation_data = MandelbrotAPI.CalculateMandelbrot(true, (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax);
+                        var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
+                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
+                    }
+                    else if (renderPanel.FractalSetIndex == 5)
+                    {
+                        var calculation_data = MandelbrotAPI.CalculateJulia(renderPanel.CtrlX, renderPanel.CtrlY, (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
@@ -240,11 +247,20 @@ namespace MandelbrotViewer
                         MandelbrotAPI.SaveBitmapToFile(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 1)
                         MandelbrotAPI.SaveJuliaBitmapToFile(renderPanel.CtrlX, renderPanel.CtrlY, this.CreateGraphics().GetHdc(), (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
-                    else if (renderPanel.FractalSetIndex == 2 || renderPanel.FractalSetIndex == 3)
-                        MandelbrotAPI.SaveBuddhaBitmapToFile(this.CreateGraphics().GetHdc(), antiBuddha, (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
+                    else if (renderPanel.FractalSetIndex == 2)
+                        MandelbrotAPI.SaveBuddhaBitmapToFile(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
+                    else if (renderPanel.FractalSetIndex == 3)
+                        MandelbrotAPI.SaveAntiBuddhaBitmapToFile(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 4)
                     {
                         var calculation_data = MandelbrotAPI.CalculateMandelbrot(true, (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax);
+                        var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
+                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
+                    }
+                    else if (renderPanel.FractalSetIndex == 5)
+                    {
+                        var calculation_data = MandelbrotAPI.CalculateJulia(renderPanel.CtrlX, renderPanel.CtrlY, (int)wx, (int)wy, int.Parse(txtMaxIterations.Text), coord.XMin, coord.XMax, coord.YMin, coord.YMax);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);

@@ -10,99 +10,79 @@ namespace MandelbrotViewer
 {
     public class MandelbrotAPI
     {
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void render(bool gpu, IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void renderJulia(double re, double im, IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void renderBuddha(IntPtr hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void saveMandelbrotBitmap(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, [MarshalAs(UnmanagedType.LPStr)] string lpString);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void saveMandelbrotJPG(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, [MarshalAs(UnmanagedType.LPStr)] string lpString);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void saveJuliaBitmap(double re, double im, IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, [MarshalAs(UnmanagedType.LPStr)] string lpString);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void saveJuliaJPG(double re, double im, IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, [MarshalAs(UnmanagedType.LPStr)] string lpString);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void saveBuddhaBitmap(IntPtr hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, [MarshalAs(UnmanagedType.LPStr)] string lpString);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void saveBuddhaJPG(IntPtr hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, [MarshalAs(UnmanagedType.LPStr)] string lpString);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void calculateMandelbrot(bool gpu, int width, int height, int maxIterations, double xMin, double xMax, double yMin, double yMax, [MarshalAs(UnmanagedType.SafeArray)] out int[] result);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void paletteTransform([MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.SafeArray)] int[] palette, [MarshalAs(UnmanagedType.SafeArray)] out int[] result);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void renderArrayToDevice(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void renderArrayToBitmap(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename);
-
-        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
-        private static extern void renderArrayToJPEG(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename);
-
-
-
         public static void RenderBasic(bool gpu, IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax)
         {
-            render(gpu, hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax);
+            MandelbrotDLLInterface.render(gpu, hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax);
         }
         public static void RenderJulia(double re, double im, IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax)
         {
-            renderJulia(re, im, hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax);
+            MandelbrotDLLInterface.renderJulia(re, im, hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax);
         }
 
-        public static void RenderBuddha(IntPtr hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax)
+        public static void RenderBuddha(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax)
         {
-            renderBuddha(hdc, antiBuddha, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax);
+            MandelbrotDLLInterface.renderBuddha(hdc, false, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax);
+        }
+
+        public static void RenderAntiBuddha(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax)
+        {
+            MandelbrotDLLInterface.renderBuddha(hdc, true, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax);
         }
 
         public static void SaveBitmapToFile(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
         {
-            saveMandelbrotBitmap(hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
+            MandelbrotDLLInterface.saveMandelbrotBitmap(hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
         }
 
         public static void SaveJPGToFile(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
         {
-            saveMandelbrotJPG(hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
+            MandelbrotDLLInterface.saveMandelbrotJPG(hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
         }
 
         public static void SaveJuliaBitmapToFile(double re, double im, IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
         {
-            saveJuliaBitmap(re, im, hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
+            MandelbrotDLLInterface.saveJuliaBitmap(re, im, hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
         }
 
         public static void SaveJuliaJPGToFile(double re, double im, IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
         {
-            saveJuliaJPG(re, im, hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
+            MandelbrotDLLInterface.saveJuliaJPG(re, im, hdc, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
         }
 
-        public static void SaveBuddhaBitmapToFile(IntPtr hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
+        public static void SaveBuddhaBitmapToFile(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
         {
-            saveBuddhaBitmap(hdc, antiBuddha, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
+            MandelbrotDLLInterface.saveBuddhaBitmap(hdc, false, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
         }
 
-        public static void SaveBuddhaJPGToFile(IntPtr hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
+        public static void SaveAntiBuddhaBitmapToFile(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
         {
-            saveBuddhaJPG(hdc, antiBuddha, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
+            MandelbrotDLLInterface.saveBuddhaBitmap(hdc, true, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
+        }
+
+        public static void SaveBuddhaJPGToFile(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
+        {
+            MandelbrotDLLInterface.saveBuddhaJPG(hdc, false, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
+        }
+
+        public static void SaveAntiBuddhaJPGToFile(IntPtr hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, string filename)
+        {
+            MandelbrotDLLInterface.saveBuddhaJPG(hdc, true, screenWidth, screenHeight, maxIterations, xMin, xMax, yMin, yMax, filename);
         }
 
         public static int[] CalculateMandelbrot(bool gpu, int width, int height, int maxIterations, double xMin, double xMax, double yMin, double yMax)
         {
             int[] result;
 
-            calculateMandelbrot(gpu, width, height, maxIterations, xMin, xMax, yMin, yMax, out result);
+            MandelbrotDLLInterface.calculateMandelbrot(gpu, width, height, maxIterations, xMin, xMax, yMin, yMax, out result);
+
+            return result;
+        }
+
+        public static int[] CalculateJulia(double re, double im, int width, int height, int maxIterations, double xMin, double xMax, double yMin, double yMax)
+        {
+            int[] result;
+
+            MandelbrotDLLInterface.calculateJulia(re, im, width, height, maxIterations, xMin, xMax, yMin, yMax, out result);
 
             return result;
         }
@@ -111,7 +91,7 @@ namespace MandelbrotViewer
         {
             int[] result;
 
-            paletteTransform(input, palette, out result);
+            MandelbrotDLLInterface.paletteTransform(input, palette, out result);
 
             return result;
         }
@@ -138,17 +118,17 @@ namespace MandelbrotViewer
 
         public static void RenderArrayToDevice(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input)
         {
-            renderArrayToDevice(hdc, width, height, input);
+            MandelbrotDLLInterface.renderArrayToDevice(hdc, width, height, input);
         }
 
         public static void RenderArrayToBitmap(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename)
         {
-            renderArrayToBitmap(hdc, width, height, input, filename);
+            MandelbrotDLLInterface.renderArrayToBitmap(hdc, width, height, input, filename);
         }
 
         public static void RenderArrayToJPEG(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename)
         {
-            renderArrayToJPEG(hdc, width, height, input, filename);
+            MandelbrotDLLInterface.renderArrayToJPEG(hdc, width, height, input, filename);
         }
     }
 }

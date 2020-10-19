@@ -118,7 +118,8 @@
             "Julia (right mouse to control)",
             "Buddha",
             "Anti-Buddha",
-            "Mandelbrot Experimental API"});
+            "Mandelbrot Experimental API",
+            "Julia Experimental API"});
             this.cbWhichSet.Location = new System.Drawing.Point(9, 12);
             this.cbWhichSet.Name = "cbWhichSet";
             this.cbWhichSet.Size = new System.Drawing.Size(226, 21);
