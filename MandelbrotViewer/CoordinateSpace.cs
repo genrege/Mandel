@@ -143,5 +143,11 @@ namespace MandelbrotViewer
         }
 
         public double AspectRatio { get; private set; }
+
+        public CoordinateSpace DeepCopy()
+        {
+            var clone = (CoordinateSpace)this.MemberwiseClone();
+            return clone;
+        }
     }
 }
