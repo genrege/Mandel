@@ -178,8 +178,6 @@ namespace MandelbrotViewer
         int[] palette_ = null;
         private void Render()
         {
-            palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
-
             var gr = CreateGraphics();
             var hdc = gr.GetHdc();
 
@@ -199,6 +197,7 @@ namespace MandelbrotViewer
                     break;
                 case 4:
                     {
+                        palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateMandelbrot(useGpu, MaxIterations, coord_);
                         var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
@@ -206,7 +205,24 @@ namespace MandelbrotViewer
                     break;
                 case 5:
                     {
+                        palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateJulia(CtrlX, CtrlY, useGpu, MaxIterations, coord_);
+                        var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
+                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                    }
+                    break;
+                case 6:
+                    {
+                        palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
+                        var calculation_data = MandelbrotAPI.calculateBuddha(false, MaxIterations, coord_);
+                        var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
+                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                    }
+                    break;
+                case 7:
+                    {
+                        palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
+                        var calculation_data = MandelbrotAPI.calculateBuddha(true, MaxIterations, coord_);
                         var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
                     }

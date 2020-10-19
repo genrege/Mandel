@@ -359,6 +359,25 @@ extern "C" DLL_API void calculateJulia(double re, double im, bool gpu, int maxIt
     SafeArrayUnlock(*ppsa);
 }
 
+extern "C" DLL_API void calculateBuddha(bool antiBuddha, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+{
+    const unsigned array_size = width * height;
+
+    SAFEARRAYBOUND rgsa;
+    rgsa.lLbound = 0;
+    rgsa.cElements = array_size;
+    *ppsa = SafeArrayCreate(VT_I4, 1, &rgsa);
+
+    unsigned* result;
+    SafeArrayLock(*ppsa);
+    SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
+
+    MandelbrotSet<double>::gpuCalculationDensity(antiBuddha, width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+
+    SafeArrayUnaccessData(*ppsa);
+    SafeArrayUnlock(*ppsa);
+}
+
 //  Managed client API to transform data according to an input palette.  
 //  The operation is ppsaResult[i] = palette[input[i]].
 extern "C" void paletteTransform(SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)

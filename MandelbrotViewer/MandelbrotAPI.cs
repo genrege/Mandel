@@ -88,6 +88,15 @@ namespace MandelbrotViewer
             return result;
         }
 
+        public static int[] calculateBuddha(bool antiBuddha, int maxIterations, CoordinateSpace cspace)
+        {
+            int[] result;
+
+            MandelbrotDLLInterface.calculateBuddha(antiBuddha, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, out result);
+
+            return result;
+        }
+
         public static int[] PaletteTransform(int[] input, int[] palette)
         {
             int[] result;
@@ -110,6 +119,26 @@ namespace MandelbrotViewer
                 double f = Math.Abs(s1 - Math.Pow(s1 - 1, 8));
                 double g = Math.Abs(s2 - Math.Pow(s2 - 1, 4));
                 double h = Math.Abs(s3 - Math.Pow(s3 - 1, 2));
+
+                palette[i] = ((int)(255.0 * f) << 16) | ((int)(255.0 * g) << 8) | (int)(255.0 * h);
+            }
+
+            return palette;
+        }
+
+        public static int[] BuddhaPalette(int max_iterations)
+        {
+            int[] palette = new int[max_iterations];
+
+            for (int i = 0; i < max_iterations; ++i)
+            {
+                double s1 = (double)(i) * 10.0 / (double)max_iterations;
+                double s2 = (double)(i) * 10.0 / (double)max_iterations;
+                double s3 = (double)(i) * 10.0 / (double)max_iterations;
+
+                double f = Math.Min(1, 10 * (1 - Math.Pow(s1 - 1, 2)));
+                double g = Math.Min(1, 10 * (1 - Math.Pow(s2 - 1, 2)));
+                double h = Math.Min(1, 10 * (1 - Math.Pow(s3 - 1, 10)));
 
                 palette[i] = ((int)(255.0 * f) << 16) | ((int)(255.0 * g) << 8) | (int)(255.0 * h);
             }

@@ -246,6 +246,20 @@ namespace MandelbrotViewer
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
+                    else if (renderPanel.FractalSetIndex == 6)
+                    {
+                        var calculation_data = MandelbrotAPI.calculateBuddha(false, int.Parse(txtMaxIterations.Text), extCoord);
+                        var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
+                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
+                    }
+                    else if (renderPanel.FractalSetIndex == 7)
+                    {
+                        var calculation_data = MandelbrotAPI.calculateBuddha(true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
+                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
+                    }
                 }
                 else
                 {
@@ -268,6 +282,20 @@ namespace MandelbrotViewer
                     {
                         var calculation_data = MandelbrotAPI.CalculateJulia(renderPanel.CtrlX, renderPanel.CtrlY, true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
+                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
+                    }
+                    else if (renderPanel.FractalSetIndex == 6)
+                    {
+                        var calculation_data = MandelbrotAPI.calculateBuddha(false, int.Parse(txtMaxIterations.Text), extCoord);
+                        var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
+                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
+                    }
+                    else if (renderPanel.FractalSetIndex == 7)
+                    {
+                        var calculation_data = MandelbrotAPI.calculateBuddha(true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
