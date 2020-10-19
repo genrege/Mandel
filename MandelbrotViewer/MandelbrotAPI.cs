@@ -46,6 +46,11 @@ namespace MandelbrotViewer
         [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
         private static extern void renderArrayToDevice(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input);
 
+        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
+        private static extern void renderArrayToBitmap(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename);
+
+        [DllImport(@"C:\git\Mandel\x64\Release\MandelbrotRenderer.dll")]
+        private static extern void renderArrayToJPEG(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename);
 
 
 
@@ -118,12 +123,12 @@ namespace MandelbrotViewer
             for (int i = 0; i < max_iterations; ++i)
             {
                 double s1 = (double)(i) * 1.0 / (double)max_iterations;
-                double s2 = (double)(i) * 1.0 / (double)max_iterations;
-                double s3 = (double)(i) * 1.0 / (double)max_iterations;
+                double s2 = (double)(i) * 2.0 / (double)max_iterations;
+                double s3 = (double)(i) * 3.0 / (double)max_iterations;
 
-                double f = 1 - Math.Pow(s1 - 1, 2);
-                double g = 1 - Math.Pow(s2 - 1, 2);
-                double h = 1 - Math.Pow(s3 - 1, 2);
+                double f = Math.Abs(s1 - Math.Pow(s1 - 1, 8));
+                double g = Math.Abs(s2 - Math.Pow(s2 - 1, 4));
+                double h = Math.Abs(s3 - Math.Pow(s3 - 1, 2));
 
                 palette[i] = ((int)(255.0 * f) << 16) | ((int)(255.0 * g) << 8) | (int)(255.0 * h);
             }
@@ -134,6 +139,16 @@ namespace MandelbrotViewer
         public static void RenderArrayToDevice(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input)
         {
             renderArrayToDevice(hdc, width, height, input);
+        }
+
+        public static void RenderArrayToBitmap(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename)
+        {
+            renderArrayToBitmap(hdc, width, height, input, filename);
+        }
+
+        public static void RenderArrayToJPEG(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename)
+        {
+            renderArrayToJPEG(hdc, width, height, input, filename);
         }
     }
 }

@@ -25,3 +25,5 @@ extern "C" DLL_API void saveBuddhaJPG(HDC hdc, bool antiBuddha, int screenWidth,
 extern "C" DLL_API void calculateMandelbrot(bool gpu, int width, int height, int maxIterations, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa);
 extern "C" DLL_API void paletteTransform(SAFEARRAY * input, SAFEARRAY * palette, SAFEARRAY * *ppsa);
 extern "C" DLL_API void renderArrayToDevice(HDC hdc, int width, int height, SAFEARRAY* input);
+extern "C" DLL_API void renderArrayToBitmap(HDC hdc, int width, int height, SAFEARRAY * input, const char* filename);
+extern "C" DLL_API void renderArrayToJPEG(HDC hdc, int width, int height, SAFEARRAY * input, const char* filename);

@@ -1,6 +1,6 @@
 ﻿namespace MandelbrotViewer
 {
-    partial class ViewerForm
+    partial class MainForm
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ViewerForm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.mainSplitter = new System.Windows.Forms.SplitContainer();
             this.SplitControlContainer = new System.Windows.Forms.SplitContainer();
             this.cbWhichSet = new System.Windows.Forms.ComboBox();
@@ -117,7 +117,8 @@
             "Mandelbrot",
             "Julia (right mouse to control)",
             "Buddha",
-            "Anti-Buddha"});
+            "Anti-Buddha",
+            "Mandelbrot Experimental API"});
             this.cbWhichSet.Location = new System.Drawing.Point(9, 12);
             this.cbWhichSet.Name = "cbWhichSet";
             this.cbWhichSet.Size = new System.Drawing.Size(226, 21);
@@ -314,16 +315,16 @@
             this.txtMaxIterations.Text = "1024";
             this.txtMaxIterations.TextChanged += new System.EventHandler(this.txtMaxIterations_TextChanged);
             // 
-            // ViewerForm
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(840, 654);
             this.Controls.Add(this.mainSplitter);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "ViewerForm";
+            this.Name = "MainForm";
             this.Text = "Mandelbrot Viewer";
-            this.Load += new System.EventHandler(this.ViewerForm_Load);
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.mainSplitter.Panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.mainSplitter)).EndInit();
             this.mainSplitter.ResumeLayout(false);

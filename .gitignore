@@ -92,3 +92,16 @@
 /x64/Debug/MandelbrotRenderer.exp
 /x64/Debug/MandelbrotRenderer.dll
 /MandelbrotViewer/obj/x64/Release/MandelbrotViewer.csprojAssemblyReference.cache
+*.suo
+*.ipch
+*.pdb
+*.obj
+*.exe
+*.dll
+*.lib
+*.ilk
+/MandelbrotRenderer/x64/Release/Mandelbr.8fd82e77.tlog/link.delete.1.tlog
+/MandelbrotRenderer/x64/Debug/Mandelbr.8fd82e77.tlog/link.5188.delete.1.tlog
+/MandelbrotRenderer/x64/Debug/Mandelbr.8fd82e77.tlog/link.23876.delete.1.tlog
+/MandelbrotRenderer/x64/Debug/Mandelbr.8fd82e77.tlog/link.22252.delete.1.tlog
+/MandelbrotRenderer/x64/Debug/Mandelbr.8fd82e77.tlog/link.15620.delete.1.tlog

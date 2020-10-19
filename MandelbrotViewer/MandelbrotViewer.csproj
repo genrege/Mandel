@@ -92,9 +92,11 @@
   <ItemGroup>
     <Compile Include="CoordinateSpace.cs" />
     <Compile Include="MandelbrotAPI.cs" />
-    <Compile Include="MandelbrotViewerMainForm.cs" />
-    <Compile Include="MandelbrotViewerMainForm.Designer.cs">
-      <DependentUpon>MandelbrotViewerMainForm.cs</DependentUpon>
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="OverviewPanel.cs">
       <SubType>UserControl</SubType>
@@ -110,8 +112,8 @@
     <Compile Include="RenderPanel.Designer.cs">
       <DependentUpon>RenderPanel.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="MandelbrotViewerMainForm.resx">
-      <DependentUpon>MandelbrotViewerMainForm.cs</DependentUpon>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OverviewPanel.resx">
       <DependentUpon>OverviewPanel.cs</DependentUpon>

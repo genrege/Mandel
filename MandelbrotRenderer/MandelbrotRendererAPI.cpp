@@ -177,7 +177,7 @@ namespace
         return bi;
     }
 
-    void saveToBitmap(HDC hdc, int screenWidth, int screenHeight, const MandelbrotSet<double>& mset, const char* filename)
+    void saveToBitmap(HDC hdc, int screenWidth, int screenHeight, const unsigned* data, const char* filename)
     {
         HDC hmemDC = CreateCompatibleDC(hdc);
         HBITMAP bmp = CreateCompatibleBitmap(hdc, screenWidth, screenHeight);
@@ -187,7 +187,7 @@ namespace
         GetObject(bmp, sizeof(BITMAP), &bmpBuffer);
 
         const auto& bi = createBitmapInfoHeader(bmpBuffer.bmWidth, bmpBuffer.bmHeight, 32);
-        SetDIBits(hmemDC, bmp, 0, screenHeight, mset.bmp(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+        SetDIBits(hmemDC, bmp, 0, screenHeight, data, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
         BITMAPINFO binf;
         memcpy(&binf.bmiHeader, &bi, sizeof(bi));
@@ -199,7 +199,7 @@ namespace
         DeleteDC(hmemDC);
     }
 
-    void saveToJPEG(HDC hdc, int screenWidth, int screenHeight, const MandelbrotSet<double>& mset, const char* filename)
+    void saveToJPEG(HDC hdc, int screenWidth, int screenHeight, const unsigned* data, const char* filename)
     {
         HDC hmemDC = CreateCompatibleDC(hdc);
         HBITMAP bmp = CreateCompatibleBitmap(hdc, screenWidth, screenHeight);
@@ -208,7 +208,7 @@ namespace
         BITMAP bmpBuffer;
         GetObject(bmp, sizeof(BITMAP), &bmpBuffer);
         const auto& bi = createBitmapInfoHeader(bmpBuffer.bmWidth, bmpBuffer.bmHeight, 32);
-        SetDIBits(hmemDC, bmp, 0, screenHeight, mset.bmp(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+        SetDIBits(hmemDC, bmp, 0, screenHeight, data, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
         CreateJPEGFile(filename, bmp);
         DeleteObject(bmp);
         DeleteDC(hmemDC);
@@ -268,7 +268,7 @@ extern "C" void saveMandelbrotBitmap(HDC hdc, int screenWidth, int screenHeight,
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
     mset.CalculateSet(maxIterations);
-    saveToBitmap(hdc, screenWidth, screenHeight, mset, filename);
+    saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
 extern "C" void saveJuliaBitmap(double re, double im, HDC hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
@@ -276,7 +276,7 @@ extern "C" void saveJuliaBitmap(double re, double im, HDC hdc, int screenWidth, 
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
     mset.CalculateJulia(Complex<double>(re, im), maxIterations);
-    saveToBitmap(hdc, screenWidth, screenHeight, mset, filename);
+    saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
 extern "C" void saveBuddhaBitmap(HDC hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
@@ -284,7 +284,7 @@ extern "C" void saveBuddhaBitmap(HDC hdc, bool antiBuddha, int screenWidth, int 
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
     mset.CalculateBuddha(antiBuddha, maxIterations);
-    saveToBitmap(hdc, screenWidth, screenHeight, mset, filename);
+    saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
 extern "C" void saveMandelbrotJPG(HDC hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
@@ -292,7 +292,7 @@ extern "C" void saveMandelbrotJPG(HDC hdc, int screenWidth, int screenHeight, in
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
     mset.CalculateSet(maxIterations);
-    saveToJPEG(hdc, screenWidth, screenHeight, mset, filename);
+    saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
 extern "C" void saveJuliaJPG(double re, double im, HDC hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
@@ -300,7 +300,7 @@ extern "C" void saveJuliaJPG(double re, double im, HDC hdc, int screenWidth, int
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
     mset.CalculateJulia(Complex<double>(re, im), maxIterations);
-    saveToJPEG(hdc, screenWidth, screenHeight, mset, filename);
+    saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
 extern "C" void saveBuddhaJPG(HDC hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
@@ -308,7 +308,7 @@ extern "C" void saveBuddhaJPG(HDC hdc, bool antiBuddha, int screenWidth, int scr
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
     mset.CalculateBuddha(antiBuddha, maxIterations);
-    saveToJPEG(hdc, screenWidth, screenHeight, mset, filename);
+    saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
 //  Managed client API to calculate the set data only
@@ -378,6 +378,34 @@ extern "C" void renderArrayToDevice(HDC hdc, int width, int height, SAFEARRAY* i
     SafeArrayAccessData(input, (void HUGEP**) & input_data);
 
     sendToDisplay(hdc, width, height, input_data);
+
+    SafeArrayUnaccessData(input);
+    SafeArrayUnlock(input);
+}
+
+//  Managed client API to render to a bitmap
+extern "C" void renderArrayToBitmap(HDC hdc, int width, int height, SAFEARRAY * input, const char* filename)
+{
+    SafeArrayLock(input);
+    unsigned array_size = input->rgsabound->cElements;
+    unsigned* input_data;
+    SafeArrayAccessData(input, (void HUGEP**) & input_data);
+
+    saveToBitmap(hdc, width, height, input_data, filename);
+
+    SafeArrayUnaccessData(input);
+    SafeArrayUnlock(input);
+}
+
+//  Managed client API to render to a JPEG
+extern "C" void renderArrayToJPEG(HDC hdc, int width, int height, SAFEARRAY * input, const char* filename)
+{
+    SafeArrayLock(input);
+    unsigned array_size = input->rgsabound->cElements;
+    unsigned* input_data;
+    SafeArrayAccessData(input, (void HUGEP**) & input_data);
+
+    saveToJPEG(hdc, width, height, input_data, filename);
 
     SafeArrayUnaccessData(input);
     SafeArrayUnlock(input);
