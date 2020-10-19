@@ -233,7 +233,7 @@ namespace
 
 }
 
-extern "C" void render(bool gpu, HDC hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax)
+extern "C" void render(bool gpu, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -245,7 +245,7 @@ extern "C" void render(bool gpu, HDC hdc, int screenWidth, int screenHeight, int
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
 
-extern "C" void renderJulia(double re, double im, HDC hdc,int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax)
+extern "C" void renderJulia(double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -254,7 +254,7 @@ extern "C" void renderJulia(double re, double im, HDC hdc,int screenWidth, int s
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
 
-extern "C" void renderBuddha(HDC hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax)
+extern "C" void renderBuddha(HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -263,7 +263,7 @@ extern "C" void renderBuddha(HDC hdc, bool antiBuddha, int screenWidth, int scre
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
 
-extern "C" void saveMandelbrotBitmap(HDC hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveMandelbrotBitmap(HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -271,7 +271,7 @@ extern "C" void saveMandelbrotBitmap(HDC hdc, int screenWidth, int screenHeight,
     saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveJuliaBitmap(double re, double im, HDC hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveJuliaBitmap(double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -279,7 +279,7 @@ extern "C" void saveJuliaBitmap(double re, double im, HDC hdc, int screenWidth, 
     saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveBuddhaBitmap(HDC hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveBuddhaBitmap(HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -287,7 +287,7 @@ extern "C" void saveBuddhaBitmap(HDC hdc, bool antiBuddha, int screenWidth, int 
     saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveMandelbrotJPG(HDC hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveMandelbrotJPG(HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -295,7 +295,7 @@ extern "C" void saveMandelbrotJPG(HDC hdc, int screenWidth, int screenHeight, in
     saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveJuliaJPG(double re, double im, HDC hdc, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveJuliaJPG(double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -303,7 +303,7 @@ extern "C" void saveJuliaJPG(double re, double im, HDC hdc, int screenWidth, int
     saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveBuddhaJPG(HDC hdc, bool antiBuddha, int screenWidth, int screenHeight, int maxIterations, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveBuddhaJPG(HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
@@ -312,7 +312,7 @@ extern "C" void saveBuddhaJPG(HDC hdc, bool antiBuddha, int screenWidth, int scr
 }
 
 //  Managed client API to calculate the set data only
-extern "C" DLL_API void calculateMandelbrot(bool gpu, int width, int height, int maxIterations, double xMin, double xMax, double yMin, double yMax, SAFEARRAY** ppsa)
+extern "C" DLL_API void calculateMandelbrot(bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY** ppsa)
 {
     const unsigned array_size = width * height;
     
@@ -335,7 +335,7 @@ extern "C" DLL_API void calculateMandelbrot(bool gpu, int width, int height, int
 }
 
 //  Managed client API to calculate the Julia set data only
-extern "C" DLL_API void calculateJulia(double re, double im, int width, int height, int maxIterations, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+extern "C" DLL_API void calculateJulia(double re, double im, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
     const unsigned array_size = width * height;
 

@@ -114,7 +114,6 @@ namespace MandelbrotViewer
                 if (handler1 != null)
                     handler1.Invoke(this, new SetScaleInfo(cc.X, cc.Y, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax));
 
-                //MandelbrotAPI.RenderBasic(useGpu, this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
                 Render();
 
             }
@@ -132,7 +131,6 @@ namespace MandelbrotViewer
         {
             coord_.Align(px, py, Width / 2, Height / 2);
 
-            //MandelbrotAPI.RenderBasic(useGpu, this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
             Render();
 
             EventHandler handler1 = PositionChange;
@@ -169,7 +167,6 @@ namespace MandelbrotViewer
                 Zoom(1.1, px, py);
             }
 
-            //MandelbrotAPI.RenderBasic(useGpu, this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
             Render();
 
             EventHandler handler1 = PositionChange;
@@ -187,27 +184,27 @@ namespace MandelbrotViewer
             switch (FractalSetIndex)
             {
                 case 0:
-                    MandelbrotAPI.RenderBasic(useGpu, this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                    MandelbrotAPI.RenderBasic(true, CreateGraphics().GetHdc(), maxIterations, coord_);
                     break;
                 case 1:
-                    MandelbrotAPI.RenderJulia(CtrlX, CtrlY, this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                    MandelbrotAPI.RenderJulia(CtrlX, CtrlY, this.CreateGraphics().GetHdc(), maxIterations, coord_);
                     break;
                 case 2:
-                    MandelbrotAPI.RenderBuddha(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                    MandelbrotAPI.RenderBuddha(this.CreateGraphics().GetHdc(), maxIterations, coord_);
                     break;
                 case 3:
-                    MandelbrotAPI.RenderAntiBuddha(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                    MandelbrotAPI.RenderAntiBuddha(this.CreateGraphics().GetHdc(), maxIterations, coord_);
                     break;
                 case 4:
                     {
-                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(true, coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(true, maxIterations, coord_);
                         var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDevice(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
                     }
                     break;
                 case 5:
                     {
-                        var calculation_data = MandelbrotAPI.CalculateJulia(CtrlX, CtrlY, coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+                        var calculation_data = MandelbrotAPI.CalculateJulia(CtrlX, CtrlY, maxIterations, coord_);
                         var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDevice(this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
                     }
@@ -219,7 +216,7 @@ namespace MandelbrotViewer
         {
             double aspectRatio = (double)Width / (double)Height;
             var hdc = e.Graphics.GetHdc();
-            //MandelbrotAPI.RenderBasic(useGpu, this.CreateGraphics().GetHdc(), coord_.ScreenWidth, coord_.ScreenHeight, maxIterations, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax);
+
             Render();
 
             EventHandler handler1 = PositionChange;
