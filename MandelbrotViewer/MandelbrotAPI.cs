@@ -15,9 +15,9 @@ namespace MandelbrotViewer
             MandelbrotDLLInterface.render(hdc, gpu, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
         }
 
-        public static void RenderJulia(IntPtr hdc, int maxIterations, double re, double im, CoordinateSpace cspace)
+        public static void RenderJulia(IntPtr hdc, bool gpu, int maxIterations, double re, double im, CoordinateSpace cspace)
         {
-            MandelbrotDLLInterface.renderJulia(hdc, maxIterations, re, im, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
+            MandelbrotDLLInterface.renderJulia(hdc, gpu, maxIterations, re, im, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
         }
 
         public static void RenderBuddha(IntPtr hdc, int maxIterations, CoordinateSpace cspace)
@@ -79,11 +79,11 @@ namespace MandelbrotViewer
             return result;
         }
 
-        public static int[] CalculateJulia(double re, double im, int maxIterations, CoordinateSpace cspace)
+        public static int[] CalculateJulia(double re, double im, bool gpu, int maxIterations, CoordinateSpace cspace)
         {
             int[] result;
 
-            MandelbrotDLLInterface.calculateJulia(re, im, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, out result);
+            MandelbrotDLLInterface.calculateJulia(re, im, gpu, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, out result);
 
             return result;
         }

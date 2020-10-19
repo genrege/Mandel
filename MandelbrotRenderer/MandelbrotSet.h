@@ -106,6 +106,16 @@ namespace MathsEx
             delete[] palette;
         }
 
+        void CalculateJuliaCPU(const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
+        {
+            cpuJuliaKernel(k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
+
+            rgb* palette = new rgb[maxIters];
+            setPaletteJulia(maxIters, palette);
+            gpuPaletteKernel(m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
+            delete[] palette;
+        }
+
         static void setPalette(size_t size, rgb* palette)
         {
             for (size_t i = 0; i < size; ++i)
@@ -228,6 +238,34 @@ namespace MathsEx
             mandelbrotResult.discard_data();
         }
 
+        static void cpuJuliaKernel(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        {
+            const int num_points = display_w * display_h;
+
+            const int wx = static_cast<int>(display_w);
+            const int wy = static_cast<int>(display_h);
+
+            const auto set_width = x1 - x0;
+            const auto set_height = y1 - y0;
+
+            const auto set_step_x = set_width / double(display_w);
+            const auto set_step_y = set_height / double(display_h);
+
+            #pragma omp parallel for
+            for (int i = 0; i < num_points; ++i)
+            {
+                const auto array_x = i % display_w;
+                const auto array_y = display_h - i / display_w;
+
+                const auto re = x0 + array_x * set_step_x;
+                const auto im = y0 + array_y * set_step_y;
+                const Complex<RealType> c(re, im);
+
+                const auto point_value = CalculateJulia(c, k, max_iter);
+                iters[i] = point_value;
+            }
+        }
+
         static void gpuJuliaKernel(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
             const auto num_points = display_w * display_h;
@@ -279,8 +317,11 @@ namespace MathsEx
             concurrency::extent<1> e(num_points);
             concurrency::array_view<unsigned, 1> edmap(e, dmap);
 
+            const double r_set_step_x = 1.0 / set_step_x;
+            const double r_set_step_y = 1.0 / set_step_y;
+
             concurrency::parallel_for_each(e,
-                [anti_buddha, display_w, display_h, x0, y0, set_step_x, set_step_y, max_iter, edmap](index<1> idx) restrict(amp, cpu)
+                [anti_buddha, display_w, display_h, x0, y0, set_step_x, set_step_y, r_set_step_x, r_set_step_y, max_iter, edmap](index<1> idx) restrict(amp, cpu)
                 {
                     const auto array_x = idx[0] % display_w;
                     const auto array_y = display_h - idx[0] / display_w;
@@ -288,9 +329,6 @@ namespace MathsEx
                     const auto re = x0 + array_x * set_step_x;
                     const auto im = y0 + array_y * set_step_y;
                     const Complex<RealType> c(re, im);
-
-                    const double r_set_step_x = 1.0 / set_step_x;
-                    const double r_set_step_y = 1.0 / set_step_y;
 
                     const bool escaped = anti_buddha ? false : CalculatePoint(c,  max_iter) >= max_iter;
                     if (!escaped)
@@ -331,11 +369,8 @@ namespace MathsEx
 
             concurrency::parallel_for_each(e, [av_iters, av_bmp, av_palette](index<1> idx) restrict(amp, cpu)
                 {
-                    av_bmp[idx] = av_palette[index<1>(av_iters[idx])];
+                    av_bmp[idx] = av_palette[av_iters[idx]];
                 });
-            av_bmp.synchronize();
-            av_bmp.discard_data();
-            av_palette.discard_data();
         }
 
         static void cpuPaletteKernel(unsigned size, unsigned* iters, unsigned* bmp, unsigned size_palette, rgb* palette)

@@ -96,14 +96,14 @@ namespace MandelbrotViewer
             mx_ = cc.X;
             my_ = cc.Y;
 
-            if (MouseButtons == MouseButtons.Right)
+            if (MouseButtons == MouseButtons.Left && Control.ModifierKeys == Keys.Control)
             {
                 CtrlX = mx_;
                 CtrlY = my_;
                 if (FractalSetIndex == 1 || FractalSetIndex == 5)
                     Render();
             }
-            if (MouseButtons == MouseButtons.Left && Capture)
+            else if (MouseButtons == MouseButtons.Left && Capture)
             {
                 double nx = cx_ - mx_;
                 double ny = cy_ - my_;
@@ -189,7 +189,7 @@ namespace MandelbrotViewer
                     MandelbrotAPI.RenderBasic(hdc, useGpu, MaxIterations, coord_);
                     break;
                 case 1:
-                    MandelbrotAPI.RenderJulia(hdc, MaxIterations, CtrlX, CtrlY, coord_);
+                    MandelbrotAPI.RenderJulia(hdc, useGpu, MaxIterations, CtrlX, CtrlY, coord_);
                     break;
                 case 2:
                     MandelbrotAPI.RenderBuddha(hdc, MaxIterations, coord_);
@@ -206,7 +206,7 @@ namespace MandelbrotViewer
                     break;
                 case 5:
                     {
-                        var calculation_data = MandelbrotAPI.CalculateJulia(CtrlX, CtrlY, MaxIterations, coord_);
+                        var calculation_data = MandelbrotAPI.CalculateJulia(CtrlX, CtrlY, useGpu, MaxIterations, coord_);
                         var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
                     }

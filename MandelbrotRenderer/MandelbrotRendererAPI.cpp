@@ -244,11 +244,14 @@ extern "C" void render(HDC hdc, bool gpu, int maxIterations, int screenWidth, in
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
 
-extern "C" void renderJulia(HDC hdc, int maxIterations, double re, double im, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
+extern "C" void renderJulia(HDC hdc, bool gpu, int maxIterations, double re, double im, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateJulia(Complex<double>(re, im), maxIterations);
+    if (gpu)
+        mset.CalculateJulia(Complex<double>(re, im), maxIterations);
+    else
+        mset.CalculateJuliaCPU(Complex<double>(re, im), maxIterations);
 
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
@@ -334,7 +337,7 @@ extern "C" DLL_API void calculateMandelbrot(bool gpu, int maxIterations, int wid
 }
 
 //  Managed client API to calculate the Julia set data only
-extern "C" DLL_API void calculateJulia(double re, double im, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+extern "C" DLL_API void calculateJulia(double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
     const unsigned array_size = width * height;
 
@@ -347,7 +350,10 @@ extern "C" DLL_API void calculateJulia(double re, double im, int maxIterations, 
     SafeArrayLock(*ppsa);
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
-    MandelbrotSet<double>::gpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+    if (gpu)
+        MandelbrotSet<double>::gpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+    else
+        MandelbrotSet<double>::cpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
     SafeArrayUnaccessData(*ppsa);
     SafeArrayUnlock(*ppsa);
