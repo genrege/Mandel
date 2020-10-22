@@ -39,7 +39,9 @@
             this.Load += new System.EventHandler(this.OverviewPanel_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.OverviewPanel_Paint);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.OverviewPanel_MouseClick);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.OverviewPanel_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.OverviewPanel_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.OverviewPanel_MouseUp);
             this.Resize += new System.EventHandler(this.OverviewPanel_Resize);
             this.ResumeLayout(false);
 

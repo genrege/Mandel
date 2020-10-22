@@ -5,6 +5,7 @@
 #include <atlimage.h>
 #include "Complex.h"
 #include "MandelbrotSet.h"
+#include "MandelbrotSetCL.h"
 
 using namespace MathsEx;
 

@@ -48,7 +48,10 @@ namespace MandelbrotViewer
         private void OnOverviewSetPosition(object sender, EventArgs e)
         {
             var pi = (PositionInfo)e;
-            renderPanel.CentreOn(pi.X, pi.Y);
+            if (pi.JuliaClick)
+                renderPanel.setJulia(pi.X, pi.Y);
+            else
+                renderPanel.CentreOn(pi.X, pi.Y);
         }
 
         private void RenderPanel_OnStatusChange(object sender, EventArgs e)

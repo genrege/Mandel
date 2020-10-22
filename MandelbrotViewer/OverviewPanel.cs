@@ -48,7 +48,7 @@ namespace MandelbrotViewer
             if (handler != null)
             {
                 var setPos = coord_.SetFromScreen(e.Location.X, e.Location.Y);
-                var pi = new PositionInfo(setPos.X, setPos.Y);
+                var pi = new PositionInfo(setPos.X, setPos.Y, Control.ModifierKeys == Keys.Control);
                 handler.Invoke(this, pi);
             }
         }
@@ -92,34 +92,43 @@ namespace MandelbrotViewer
                 pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
                 this.CreateGraphics().DrawRectangle(pen, new Rectangle(mx1, my1, Math.Max(1, mx2 - mx1), Math.Max(1, my2 - my1)));
             }
-
-            /*
-            var mouse = coord_.ScreenFromSet(x, y);
-            var mx = mouse.X;
-            var my = mouse.Y;
-
-            this.CreateGraphics().DrawLine(Pens.Gray, mx - 4, my, mx + 4, my);
-            this.CreateGraphics().DrawLine(Pens.Gray, mx, my - 4, mx, my + 4);
-            */
         }
 
         private void OverviewPanel_MouseMove(object sender, MouseEventArgs e)
         {
             var p = coord_.SetFromScreen(e.X, e.Y);
-            Debug.WriteLine("Overview {0}, {1}", p.X, p.Y);
+
+            EventHandler handler = OnOverviewSetPosition;
+            if (Capture && handler != null)
+            {
+                var pi = new PositionInfo(p.X, p.Y, Control.ModifierKeys == Keys.Control);
+                handler.Invoke(this, pi);
+            }
+        }
+
+        private void OverviewPanel_MouseDown(object sender, MouseEventArgs e)
+        {
+            Capture = true;
+        }
+
+        private void OverviewPanel_MouseUp(object sender, MouseEventArgs e)
+        {
+            Capture = false;
         }
     }
 
     public class PositionInfo : EventArgs
     {
-        public PositionInfo(double x, double y)
+        public PositionInfo(double x, double y, bool juliaClick)
         {
             X = x;
             Y = y;
+            JuliaClick = juliaClick;
         }
 
         public double X { get; set; }
         public double Y { get; set; }
+        public bool JuliaClick { get; set; }
     }
 
 

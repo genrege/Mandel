@@ -11,6 +11,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Xml;
 using System.Xml.Schema;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace MandelbrotViewer
 {
@@ -76,6 +77,14 @@ namespace MandelbrotViewer
             Invalidate();
         }
 
+        public void setJulia(double x, double y)
+        {
+            JuliaSetX = x;
+            JuliaSetY = y;
+            if (FractalSetIndex == 1 || FractalSetIndex == 5)
+                Render();
+        }
+
         private void RenderPanel_MouseMove(object sender, MouseEventArgs e)
         {
             var cc = coord_.SetFromScreen(e.Location.X, e.Location.Y);
@@ -84,10 +93,7 @@ namespace MandelbrotViewer
 
             if (MouseButtons == MouseButtons.Left && Control.ModifierKeys == Keys.Control)
             {
-                JuliaSetX = CurrentSetX;
-                JuliaSetY = CurrentSetY;
-                if (FractalSetIndex == 1 || FractalSetIndex == 5)
-                    Render();
+                setJulia(cc.X, cc.Y);
             }
             else if (MouseButtons == MouseButtons.Left && Capture)
             {
