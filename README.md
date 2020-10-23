@@ -1,9 +1,8 @@
 # Mandel
 Mandelbrot/Julia and related fractal interactive rendering.
 Limitations/TODO:
-- MandelbrotRenderer.dll is hardcoded in the C# interop file
 - Uses Microsoft C++ AMP for GPU compute.  This only works in Release mode and appears to be a Microsoft bug.
-- To be ported to OpenCL
+- To be ported to OpenCL, work in progress
 - Numeric limits of FP64 - fixed/arbitrary precision needed for deeper zooms
 - C# UI improvements needed, especially some interactive palette selection - these are hardcoded right now
 - Too much code in mandelbrotset.h, needs to be refactored (eg palettes)
