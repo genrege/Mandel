@@ -1,12 +1,16 @@
 #pragma once
 
-#include "Complex.h"
 #include <amp.h>
+#include <amp_math.h>
 #include <math.h>
+
+#include "Complex.h"
 
 #pragma warning (disable: 4996)
 
 using namespace Concurrency;
+using namespace precise_math;
+
 
 namespace MathsEx
 {
@@ -266,6 +270,75 @@ namespace MathsEx
             }
         }
 
+        static void cpuSpecialKernel(int func, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        {
+            const int num_points = display_w * display_h;
+
+            const int wx = static_cast<int>(display_w);
+            const int wy = static_cast<int>(display_h);
+
+            const auto set_width = x1 - x0;
+            const auto set_height = y1 - y0;
+
+            const auto set_step_x = set_width / double(display_w);
+            const auto set_step_y = set_height / double(display_h);
+
+            #pragma omp parallel for
+            for (int i = 0; i < num_points; ++i)
+            {
+                const auto array_x = i % display_w;
+                const auto array_y = display_h - i / display_w;
+
+                const auto re = x0 + array_x * set_step_x;
+                const auto im = y0 + array_y * set_step_y;
+                const Complex<RealType> c(re, im);
+
+                const auto point_value = func == 0 ? CalculateSpecial_0(c, k, max_iter) : CalculateSpecial_1(c, k, max_iter);
+                iters[i] = point_value;
+            }
+        }
+
+
+        static void gpuSpecialKernel(int func, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        {
+            const auto num_points = display_w * display_h;
+
+            const auto set_width  = x1 - x0;
+            const auto set_height = y1 - y0;
+
+            const auto set_step_x = set_width / double(display_w);
+            const auto set_step_y = set_height / double(display_h);
+
+            concurrency::extent<1> e(num_points);
+            concurrency::array_view<unsigned, 1> mandelbrotResult(e, iters);
+
+            concurrency::parallel_for_each(mandelbrotResult.extent,
+                [func, k, display_w, display_h, x0, y0, set_step_x, set_step_y, max_iter, mandelbrotResult](index<1> idx) restrict(amp, cpu)
+                {
+                    const auto array_x = idx[0] % display_w;
+                    const auto array_y = display_h - idx[0] / display_w;
+
+                    const auto re = x0 + array_x * set_step_x;
+                    const auto im = y0 + array_y * set_step_y;
+                    const Complex<RealType> c(re, im);
+
+                    switch(func){
+                    case 0: mandelbrotResult[idx] = CalculateSpecial_0(c, k, max_iter); break;
+                    case 1: mandelbrotResult[idx] = CalculateSpecial_1(c, k, max_iter); break;
+                    case 2: mandelbrotResult[idx] = CalculateSpecial_2(c, k, max_iter); break;
+                    case 3: mandelbrotResult[idx] = CalculateSpecial_3(c, k, max_iter); break;
+                    case 4: mandelbrotResult[idx] = CalculateSpecial_4(c, k, max_iter); break;
+                    case 5: mandelbrotResult[idx] = CalculateSpecial_5(c, k, max_iter); break;
+                    case 6: mandelbrotResult[idx] = CalculateSpecial_6(c, k, max_iter); break;
+                    case 7: mandelbrotResult[idx] = CalculateSpecial_7(c, k, max_iter); break;
+                    case 8: mandelbrotResult[idx] = CalculateSpecial_8(c, k, max_iter); break;
+                    case 9: mandelbrotResult[idx] = CalculateSpecial_9(c, k, max_iter); break;
+                    }
+                });
+            mandelbrotResult.synchronize();
+            mandelbrotResult.discard_data();
+        }
+
         static void gpuJuliaKernel(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
             const auto num_points = display_w * display_h;
@@ -411,6 +484,145 @@ namespace MathsEx
             }
 
             return iters;
+        }
+
+        inline static unsigned CalculateSpecial_0(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                const auto& z2 = z * z;
+                const auto& z3 = z * z2;
+
+                z = z - (z2 - k) / (z2 + k) + (z3 - k) / (z3 + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+
+        inline static unsigned CalculateSpecial_1(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                const auto& z2 = z * z;
+                z = (z2 - k) * (z + k) / z2;
+
+                ++iters;
+            }
+
+            return iters;
+        }
+
+        inline static unsigned CalculateSpecial_2(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(k);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + c;
+
+                ++iters;
+            }
+
+            return iters;
+        }
+
+        inline static unsigned CalculateSpecial_3(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z * z * z * z + k;
+
+                ++iters;
+            }
+
+            return iters;
+        }
+
+        inline static unsigned CalculateSpecial_4(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z * z * z * z * z + k;
+
+                ++iters;
+            }
+
+            return iters;
+        }
+
+        inline static unsigned CalculateSpecial_5(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z * z * z * z * z * z + k;
+
+                ++iters;
+            }
+
+            return iters;
+        }
+
+        inline static unsigned CalculateSpecial_6(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = (z + z * z * z * z * z * z + z * z * z * z * z) / (z * z * z) + k;
+
+                ++iters;
+            }
+
+            return iters;
+        }
+
+        inline static unsigned CalculateSpecial_7(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z * z + Sin(z) + k;
+
+                ++iters;
+            }
+
+            return iters;
+        }
+
+        inline static unsigned CalculateSpecial_8(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            return CalculateSpecial_9(c, k, maxIters);
+        }
+
+        inline static unsigned CalculateSpecial_9(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            const auto a = c.Re() - k.Im();
+            const auto b = c.Im() - k.Re();
+            const auto r = Mod(c + k); 
+            const auto f = r * a * a * b * (a + b) / (1 + a * b);
+
+            return (int(f * 20) % maxIters) % 100;
         }
 
         inline unsigned ValueAt(size_t ix, size_t iy) 

@@ -360,6 +360,28 @@ extern "C" DLL_API void calculateJulia(double re, double im, bool gpu, int maxIt
     SafeArrayUnlock(*ppsa);
 }
 
+extern "C" DLL_API void calculateSpecial(int func, double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+{
+    const unsigned array_size = width * height;
+
+    SAFEARRAYBOUND rgsa;
+    rgsa.lLbound = 0;
+    rgsa.cElements = array_size;
+    *ppsa = SafeArrayCreate(VT_I4, 1, &rgsa);
+
+    unsigned* result;
+    SafeArrayLock(*ppsa);
+    SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
+
+    if (gpu)
+        MandelbrotSet<double>::gpuSpecialKernel(func, MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+    else
+        MandelbrotSet<double>::cpuSpecialKernel(func, MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+
+    SafeArrayUnaccessData(*ppsa);
+    SafeArrayUnlock(*ppsa);
+}
+
 extern "C" DLL_API void calculateBuddha(bool antiBuddha, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
     const unsigned array_size = width * height;

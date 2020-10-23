@@ -36,6 +36,7 @@ namespace MandelbrotViewer
         public double CurrentSetY { get; set; }
         public double JuliaSetX { get; set; }
         public double JuliaSetY { get; set; }
+        public int SpecialFunc { get; set; }
 
         public int MaxIterations { get; set; }
         public int FractalSetIndex { get; set; }
@@ -81,7 +82,7 @@ namespace MandelbrotViewer
         {
             JuliaSetX = x;
             JuliaSetY = y;
-            if (FractalSetIndex == 1 || FractalSetIndex == 5)
+            if (FractalSetIndex == 1 || FractalSetIndex == 5 || FractalSetIndex == 8)
                 Render();
         }
 
@@ -203,7 +204,7 @@ namespace MandelbrotViewer
                 case 6:
                     {
                         palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
-                        var calculation_data = MandelbrotAPI.calculateBuddha(false, MaxIterations, coord_);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(false, MaxIterations, coord_);
                         var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
                     }
@@ -211,7 +212,15 @@ namespace MandelbrotViewer
                 case 7:
                     {
                         palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
-                        var calculation_data = MandelbrotAPI.calculateBuddha(true, MaxIterations, coord_);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(true, MaxIterations, coord_);
+                        var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
+                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                    }
+                    break;
+                case 8:
+                    {
+                        palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
+                        var calculation_data = MandelbrotAPI.CalculateSpecial(SpecialFunc, JuliaSetX, JuliaSetY, useGpu, MaxIterations, coord_);
                         var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
                     }

@@ -88,7 +88,16 @@ namespace MandelbrotViewer
             return result;
         }
 
-        public static int[] calculateBuddha(bool antiBuddha, int maxIterations, CoordinateSpace cspace)
+        public static int[] CalculateSpecial(int func, double re, double im, bool gpu, int maxIterations, CoordinateSpace cspace)
+        {
+            int[] result;
+
+            MandelbrotDLLInterface.calculateSpecial(func, re, im, gpu, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, out result);
+
+            return result;
+        }
+
+        public static int[] CalculateBuddha(bool antiBuddha, int maxIterations, CoordinateSpace cspace)
         {
             int[] result;
 

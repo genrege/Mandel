@@ -1,6 +1,8 @@
 #pragma once                                 
 
 #include <cmath>
+#include <amp.h>
+#include <amp_math.h>
 
 namespace MathsEx
 {
@@ -102,7 +104,7 @@ namespace MathsEx
         friend RealType Re(const Complex<RealType>& z) restrict(amp, cpu);
         friend RealType Im(const Complex<RealType>& z) restrict(amp, cpu);
         friend RealType SumSquares(const Complex<RealType>& z) restrict(amp, cpu);
-        friend RealType Mod(const Complex<RealType>& z);
+        friend RealType Mod(const Complex<RealType>& z) restrict (amp, cpu);
         friend Complex<RealType> Reciprocal(const Complex<RealType>& z) restrict(amp, cpu);
 
         friend Complex<RealType> operator*(RealType re, const Complex<RealType>& z) restrict(amp, cpu);
@@ -134,9 +136,20 @@ namespace MathsEx
         return z.m_re * z.m_re + z.m_im * z.m_im;
     }
 
-    template <class RealType> RealType Mod(const Complex<RealType>& z)
+    template <class RealType> RealType Mod(const Complex<RealType>& z) restrict(amp, cpu)
     {
-        return sqrt(z.m_re * z.m_re + z.m_im * z.m_im);
+        return concurrency::precise_math::sqrt(z.Re() * z.Re() + z.Im() * z.Im());
+    }
+
+    double Mod(const Complex<double>& z) restrict(amp, cpu)
+    {
+        return concurrency::precise_math::sqrt(z.Re() * z.Re() + z.Im() * z.Im());
+    }
+
+    Complex<double> Sin(const Complex<double>& z) restrict(amp, cpu)
+    {   
+        using namespace concurrency::precise_math;
+        return Complex<double>(sin(z.Re()) * cos(z.Im()) + cos(z.Im()) * sin(z.Re()));
     }
 
     template <class RealType> Complex<RealType> Reciprocal(const Complex<RealType>& z) restrict(amp, cpu)

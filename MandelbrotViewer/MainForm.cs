@@ -41,6 +41,10 @@ namespace MandelbrotViewer
             renderPanel.useGpu = checkBox1.Checked;
             sliderMax.Text = "6000";
             txtMaxIterations.Text = "100";
+            upDown1.Value = 0;
+            upDown1.Minimum = 0;
+            upDown1.Maximum = 9;
+            upDown1.Visible = false;
 
             cbWhichSet.SelectedIndex = 0;
         }
@@ -251,15 +255,22 @@ namespace MandelbrotViewer
                     }
                     else if (renderPanel.FractalSetIndex == 6)
                     {
-                        var calculation_data = MandelbrotAPI.calculateBuddha(false, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(false, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 7)
                     {
-                        var calculation_data = MandelbrotAPI.calculateBuddha(true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
+                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
+                    }
+                    else if (renderPanel.FractalSetIndex == 8)
+                    {
+                        var calculation_data = MandelbrotAPI.CalculateSpecial(renderPanel.SpecialFunc, renderPanel.JuliaSetX, renderPanel.JuliaSetY, true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
@@ -290,15 +301,22 @@ namespace MandelbrotViewer
                     }
                     else if (renderPanel.FractalSetIndex == 6)
                     {
-                        var calculation_data = MandelbrotAPI.calculateBuddha(false, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(false, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 7)
                     {
-                        var calculation_data = MandelbrotAPI.calculateBuddha(true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
+                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
+                    }
+                    else if (renderPanel.FractalSetIndex == 8)
+                    {
+                        var calculation_data = MandelbrotAPI.CalculateSpecial(renderPanel.SpecialFunc, renderPanel.JuliaSetX, renderPanel.JuliaSetY, true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
                         var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
@@ -314,6 +332,7 @@ namespace MandelbrotViewer
 
         private void cbWhichSet_SelectedIndexChanged(object sender, EventArgs e)
         {
+            upDown1.Visible = cbWhichSet.SelectedIndex == 8;
             renderPanel.FractalSetIndex = cbWhichSet.SelectedIndex;
             renderPanel.Invalidate();
         }
@@ -321,6 +340,12 @@ namespace MandelbrotViewer
         private void menuMain_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
 
+        }
+
+        private void upDown1_ValueChanged(object sender, EventArgs e)
+        {
+            renderPanel.SpecialFunc = (int)upDown1.Value;
+            renderPanel.Invalidate();
         }
     }
 }

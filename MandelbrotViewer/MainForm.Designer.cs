@@ -49,6 +49,7 @@
             this.txtMouseCoords = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txtMaxIterations = new System.Windows.Forms.TextBox();
+            this.upDown1 = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplitter)).BeginInit();
             this.mainSplitter.Panel1.SuspendLayout();
             this.mainSplitter.SuspendLayout();
@@ -56,6 +57,7 @@
             this.SplitControlContainer.Panel1.SuspendLayout();
             this.SplitControlContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.upDown1)).BeginInit();
             this.SuspendLayout();
             // 
             // mainSplitter
@@ -85,6 +87,7 @@
             // SplitControlContainer.Panel1
             // 
             this.SplitControlContainer.Panel1.BackColor = System.Drawing.Color.Black;
+            this.SplitControlContainer.Panel1.Controls.Add(this.upDown1);
             this.SplitControlContainer.Panel1.Controls.Add(this.cbWhichSet);
             this.SplitControlContainer.Panel1.Controls.Add(this.btnSaveBMP);
             this.SplitControlContainer.Panel1.Controls.Add(this.btnReset);
@@ -120,10 +123,11 @@
             "Mandelbrot Experimental API",
             "Julia Experimental API",
             "Buddha Experimental API",
-            "Anti-Buddha Experimental API"});
+            "Anti-Buddha Experimental API",
+            "Special Experimental API"});
             this.cbWhichSet.Location = new System.Drawing.Point(9, 12);
             this.cbWhichSet.Name = "cbWhichSet";
-            this.cbWhichSet.Size = new System.Drawing.Size(226, 21);
+            this.cbWhichSet.Size = new System.Drawing.Size(175, 21);
             this.cbWhichSet.TabIndex = 17;
             this.cbWhichSet.SelectedIndexChanged += new System.EventHandler(this.cbWhichSet_SelectedIndexChanged);
             // 
@@ -317,6 +321,14 @@
             this.txtMaxIterations.Text = "1024";
             this.txtMaxIterations.TextChanged += new System.EventHandler(this.txtMaxIterations_TextChanged);
             // 
+            // upDown1
+            // 
+            this.upDown1.Location = new System.Drawing.Point(190, 13);
+            this.upDown1.Name = "upDown1";
+            this.upDown1.Size = new System.Drawing.Size(45, 20);
+            this.upDown1.TabIndex = 18;
+            this.upDown1.ValueChanged += new System.EventHandler(this.upDown1_ValueChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -335,6 +347,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).EndInit();
             this.SplitControlContainer.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.upDown1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -361,7 +374,7 @@
         private System.Windows.Forms.Button btnReset;
         private System.Windows.Forms.Button btnSaveBMP;
         private System.Windows.Forms.ComboBox cbWhichSet;
-        private System.Windows.Forms.MenuStrip menuMain;
+        private System.Windows.Forms.NumericUpDown upDown1;
     }
 }
 
