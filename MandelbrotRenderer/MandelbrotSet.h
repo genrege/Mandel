@@ -323,16 +323,26 @@ namespace MathsEx
                     const Complex<RealType> c(re, im);
 
                     switch(func){
-                    case 0: mandelbrotResult[idx] = CalculateSpecial_0(c, k, max_iter); break;
-                    case 1: mandelbrotResult[idx] = CalculateSpecial_1(c, k, max_iter); break;
-                    case 2: mandelbrotResult[idx] = CalculateSpecial_2(c, k, max_iter); break;
-                    case 3: mandelbrotResult[idx] = CalculateSpecial_3(c, k, max_iter); break;
-                    case 4: mandelbrotResult[idx] = CalculateSpecial_4(c, k, max_iter); break;
-                    case 5: mandelbrotResult[idx] = CalculateSpecial_5(c, k, max_iter); break;
-                    case 6: mandelbrotResult[idx] = CalculateSpecial_6(c, k, max_iter); break;
-                    case 7: mandelbrotResult[idx] = CalculateSpecial_7(c, k, max_iter); break;
-                    case 8: mandelbrotResult[idx] = CalculateSpecial_8(c, k, max_iter); break;
-                    case 9: mandelbrotResult[idx] = CalculateSpecial_9(c, k, max_iter); break;
+                    case  0: mandelbrotResult[idx] = CalculateSpecial_0(c, k, max_iter); break;
+                    case  1: mandelbrotResult[idx] = CalculateSpecial_1(c, k, max_iter); break;
+                    case  2: mandelbrotResult[idx] = CalculateSpecial_2(c, k, max_iter); break;
+                    case  3: mandelbrotResult[idx] = CalculateSpecial_3(c, k, max_iter); break;
+                    case  4: mandelbrotResult[idx] = CalculateSpecial_4(c, k, max_iter); break;
+                    case  5: mandelbrotResult[idx] = CalculateSpecial_5(c, k, max_iter); break;
+                    case  6: mandelbrotResult[idx] = CalculateSpecial_6(c, k, max_iter); break;
+                    case  7: mandelbrotResult[idx] = CalculateSpecial_7(c, k, max_iter); break;
+                    case  8: mandelbrotResult[idx] = CalculateSpecial_8(c, k, max_iter); break;
+                    case  9: mandelbrotResult[idx] = CalculateSpecial_9(c, k, max_iter); break;
+                    case 10: mandelbrotResult[idx] = CalculateSpecial_10(c, k, max_iter); break;
+                    case 11: mandelbrotResult[idx] = CalculateSpecial_11(c, k, max_iter); break;
+                    case 12: mandelbrotResult[idx] = CalculateSpecial_12(c, k, max_iter); break;
+                    case 13: mandelbrotResult[idx] = CalculateSpecial_13(c, k, max_iter); break;
+                    case 14: mandelbrotResult[idx] = CalculateSpecial_14(c, k, max_iter); break;
+                    case 15: mandelbrotResult[idx] = CalculateSpecial_15(c, k, max_iter); break;
+                    case 16: mandelbrotResult[idx] = CalculateSpecial_16(c, k, max_iter); break;
+                    case 17: mandelbrotResult[idx] = CalculateSpecial_17(c, k, max_iter); break;
+                    case 18: mandelbrotResult[idx] = CalculateSpecial_18(c, k, max_iter); break;
+                    case 19: mandelbrotResult[idx] = CalculateSpecial_19(c, k, max_iter); break;
                     }
                 });
             mandelbrotResult.synchronize();
@@ -612,17 +622,173 @@ namespace MathsEx
 
         inline static unsigned CalculateSpecial_8(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
         {
-            return CalculateSpecial_9(c, k, maxIters);
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Cos(z * k);
+
+                ++iters;
+            }
+
+            return iters;
         }
 
         inline static unsigned CalculateSpecial_9(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
         {
-            const auto a = c.Re() - k.Im();
-            const auto b = c.Im() - k.Re();
-            const auto r = Mod(c + k); 
-            const auto f = r * a * a * b * (a + b) / (1 + a * b);
+            unsigned iters = 0;
 
-            return (int(f * 20) % maxIters) % 100;
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Cos(Sin(z + k));
+
+                ++iters;
+            }
+
+            return iters;
+        }
+
+        inline static unsigned CalculateSpecial_10(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+        inline static unsigned CalculateSpecial_11(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+        inline static unsigned CalculateSpecial_12(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+        inline static unsigned CalculateSpecial_13(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+        inline static unsigned CalculateSpecial_14(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+        inline static unsigned CalculateSpecial_15(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+        inline static unsigned CalculateSpecial_16(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+        inline static unsigned CalculateSpecial_17(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+        inline static unsigned CalculateSpecial_18(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
+        }
+        inline static unsigned CalculateSpecial_19(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        {
+            unsigned iters = 0;
+
+            Complex<double> z(c);
+            while (iters < maxIters && SumSquares(z) <= 4.0)
+            {
+                z = z + Tan(z + k);
+
+                ++iters;
+            }
+
+            return iters;
         }
 
         inline unsigned ValueAt(size_t ix, size_t iy) 

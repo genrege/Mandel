@@ -43,7 +43,7 @@ namespace MandelbrotViewer
             txtMaxIterations.Text = "100";
             upDown1.Value = 0;
             upDown1.Minimum = 0;
-            upDown1.Maximum = 9;
+            upDown1.Maximum = 19;
             upDown1.Visible = false;
 
             cbWhichSet.SelectedIndex = 0;

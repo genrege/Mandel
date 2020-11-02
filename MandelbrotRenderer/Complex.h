@@ -152,6 +152,18 @@ namespace MathsEx
         return Complex<double>(sin(z.Re()) * cos(z.Im()) + cos(z.Im()) * sin(z.Re()));
     }
 
+    Complex<double> Cos(const Complex<double>& z) restrict(amp, cpu)
+    {   
+        using namespace concurrency::precise_math;
+        return Complex<double>(cos(z.Re()) * cosh(z.Im()) - sin(z.Im()) * sinh(z.Re()));
+    }
+
+    Complex<double> Tan(const Complex<double>& z) restrict(amp, cpu)
+    {   
+        using namespace concurrency::precise_math;
+        return Sin(z) / Cos(z);
+    }
+
     template <class RealType> Complex<RealType> Reciprocal(const Complex<RealType>& z) restrict(amp, cpu)
     {
         return Complex<RealType>(1, 0) / z;
