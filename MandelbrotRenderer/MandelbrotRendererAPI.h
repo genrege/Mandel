@@ -10,6 +10,11 @@
 #define DLL_API __declspec(dllimport)
 #endif
 
+extern "C" struct palette
+{
+    SAFEARRAY* palette_;
+};
+
 //These functions can be used by any client.
 extern "C" DLL_API void render(HDC hdc, bool gpu, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);
 extern "C" DLL_API void renderJulia(HDC hdc, bool gpu, int maxIterations, double re, double im, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);

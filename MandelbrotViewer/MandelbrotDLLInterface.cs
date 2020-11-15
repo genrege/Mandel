@@ -9,6 +9,7 @@ namespace MandelbrotViewer
 {
     class MandelbrotDLLInterface
     {
+
         [DllImport(@"MandelbrotRenderer.dll")] public static extern void render(IntPtr hdc, bool gpu, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);
         [DllImport(@"MandelbrotRenderer.dll")] public static extern void renderJulia(IntPtr hdc, bool gpu, int maxIterations, double re, double im, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);
         [DllImport(@"MandelbrotRenderer.dll")] public static extern void renderBuddha(IntPtr hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);

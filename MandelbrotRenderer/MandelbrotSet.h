@@ -75,7 +75,7 @@ namespace MathsEx
 
             rgb* palette = new rgb[maxIters];
             setPalette(maxIters, palette);
-            cpuPaletteKernel(m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
+            gpuPaletteKernel(m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
             delete[] palette;
         }
 
@@ -188,9 +188,6 @@ namespace MathsEx
         {
             const int num_points = display_w * display_h;
 
-            const int wx = static_cast<int>(display_w);
-            const int wy = static_cast<int>(display_h);
-
             const auto set_width  = x1 - x0;
             const auto set_height = y1 - y0;
 
@@ -246,9 +243,6 @@ namespace MathsEx
         {
             const int num_points = display_w * display_h;
 
-            const int wx = static_cast<int>(display_w);
-            const int wy = static_cast<int>(display_h);
-
             const auto set_width = x1 - x0;
             const auto set_height = y1 - y0;
 
@@ -273,9 +267,6 @@ namespace MathsEx
         static void cpuSpecialKernel(int func, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
             const int num_points = display_w * display_h;
-
-            const int wx = static_cast<int>(display_w);
-            const int wy = static_cast<int>(display_h);
 
             const auto set_width = x1 - x0;
             const auto set_height = y1 - y0;
@@ -338,11 +329,6 @@ namespace MathsEx
                     case 12: mandelbrotResult[idx] = CalculateSpecial_12(c, k, max_iter); break;
                     case 13: mandelbrotResult[idx] = CalculateSpecial_13(c, k, max_iter); break;
                     case 14: mandelbrotResult[idx] = CalculateSpecial_14(c, k, max_iter); break;
-                    case 15: mandelbrotResult[idx] = CalculateSpecial_15(c, k, max_iter); break;
-                    case 16: mandelbrotResult[idx] = CalculateSpecial_16(c, k, max_iter); break;
-                    case 17: mandelbrotResult[idx] = CalculateSpecial_17(c, k, max_iter); break;
-                    case 18: mandelbrotResult[idx] = CalculateSpecial_18(c, k, max_iter); break;
-                    case 19: mandelbrotResult[idx] = CalculateSpecial_19(c, k, max_iter); break;
                     }
                 });
             mandelbrotResult.synchronize();
@@ -429,8 +415,9 @@ namespace MathsEx
                             //This if is needed in case some point flies off outside the display boundaries
                             if (rx >= 0 && ry >= 0 && rx < int(display_w) && ry < int(display_h))
                             {
-                                if (edmap[rx + display_w * ry] < max_iter)
-                                    edmap[rx + display_w * ry] += 1;
+                                const auto index = rx + display_w * ry;
+                                if (edmap[index] < max_iter)
+                                    edmap[index] += 1;
                             }
 
                             ++iters;
@@ -441,6 +428,9 @@ namespace MathsEx
             edmap.discard_data();
         }
 
+        //Use this function to map iters->palette with the result going into bmp
+        //No bounds checking is done, so size_palette must be at least max(iters[first..last]) in size
+        //iters and bmp must have the same dimension (size)
         static void gpuPaletteKernel(unsigned size, unsigned* iters, unsigned* bmp, unsigned size_palette, rgb* palette)
         {
             concurrency::extent<1> e(size);
@@ -454,17 +444,6 @@ namespace MathsEx
                 {
                     av_bmp[idx] = av_palette[av_iters[idx]];
                 });
-        }
-
-        static void cpuPaletteKernel(unsigned size, unsigned* iters, unsigned* bmp, unsigned size_palette, rgb* palette)
-        {
-            const auto* ipalette = (unsigned*)palette;
-            const auto isize = int(size);
-            #pragma omp parallel for
-            for (int i = 0; i < isize; ++i)
-            {
-                bmp[i] = ipalette[iters[i]];
-            }
         }
 
         //Calculation Mandelbrot set iterations
@@ -657,7 +636,7 @@ namespace MathsEx
             Complex<double> z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
-                z = z + Tan(z + k);
+                z = z * (z -k) * (z + k);
 
                 ++iters;
             }
@@ -707,76 +686,6 @@ namespace MathsEx
             return iters;
         }
         inline static unsigned CalculateSpecial_14(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
-        {
-            unsigned iters = 0;
-
-            Complex<double> z(c);
-            while (iters < maxIters && SumSquares(z) <= 4.0)
-            {
-                z = z + Tan(z + k);
-
-                ++iters;
-            }
-
-            return iters;
-        }
-        inline static unsigned CalculateSpecial_15(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
-        {
-            unsigned iters = 0;
-
-            Complex<double> z(c);
-            while (iters < maxIters && SumSquares(z) <= 4.0)
-            {
-                z = z + Tan(z + k);
-
-                ++iters;
-            }
-
-            return iters;
-        }
-        inline static unsigned CalculateSpecial_16(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
-        {
-            unsigned iters = 0;
-
-            Complex<double> z(c);
-            while (iters < maxIters && SumSquares(z) <= 4.0)
-            {
-                z = z + Tan(z + k);
-
-                ++iters;
-            }
-
-            return iters;
-        }
-        inline static unsigned CalculateSpecial_17(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
-        {
-            unsigned iters = 0;
-
-            Complex<double> z(c);
-            while (iters < maxIters && SumSquares(z) <= 4.0)
-            {
-                z = z + Tan(z + k);
-
-                ++iters;
-            }
-
-            return iters;
-        }
-        inline static unsigned CalculateSpecial_18(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
-        {
-            unsigned iters = 0;
-
-            Complex<double> z(c);
-            while (iters < maxIters && SumSquares(z) <= 4.0)
-            {
-                z = z + Tan(z + k);
-
-                ++iters;
-            }
-
-            return iters;
-        }
-        inline static unsigned CalculateSpecial_19(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
