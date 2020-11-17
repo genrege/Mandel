@@ -347,6 +347,13 @@ namespace MandelbrotViewer
             renderPanel.SpecialFunc = (int)upDown1.Value;
             renderPanel.Invalidate();
         }
+
+        private void btnResetJulia_Click(object sender, EventArgs e)
+        {
+            renderPanel.JuliaSetX = 0;
+            renderPanel.JuliaSetY = 0;
+            renderPanel.Invalidate();
+        }
     }
 }
 

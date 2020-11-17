@@ -264,7 +264,7 @@ namespace MathsEx
             }
         }
 
-        static void cpuSpecialKernel(int func, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        static void cpuSpecialKernel(int func, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* mandelbrotResult)
         {
             const int num_points = display_w * display_h;
 
@@ -284,8 +284,23 @@ namespace MathsEx
                 const auto im = y0 + array_y * set_step_y;
                 const Complex<RealType> c(re, im);
 
-                const auto point_value = func == 0 ? CalculateSpecial_0(c, k, max_iter) : CalculateSpecial_1(c, k, max_iter);
-                iters[i] = point_value;
+                switch(func){
+                case  0: mandelbrotResult[i] = CalculateSpecial_0(c, k, max_iter); break;
+                case  1: mandelbrotResult[i] = CalculateSpecial_1(c, k, max_iter); break;
+                case  2: mandelbrotResult[i] = CalculateSpecial_2(c, k, max_iter); break;
+                case  3: mandelbrotResult[i] = CalculateSpecial_3(c, k, max_iter); break;
+                case  4: mandelbrotResult[i] = CalculateSpecial_4(c, k, max_iter); break;
+                case  5: mandelbrotResult[i] = CalculateSpecial_5(c, k, max_iter); break;
+                case  6: mandelbrotResult[i] = CalculateSpecial_6(c, k, max_iter); break;
+                case  7: mandelbrotResult[i] = CalculateSpecial_7(c, k, max_iter); break;
+                case  8: mandelbrotResult[i] = CalculateSpecial_8(c, k, max_iter); break;
+                case  9: mandelbrotResult[i] = CalculateSpecial_9(c, k, max_iter); break;
+                case 10: mandelbrotResult[i] = CalculateSpecial_10(c, k, max_iter); break;
+                case 11: mandelbrotResult[i] = CalculateSpecial_11(c, k, max_iter); break;
+                case 12: mandelbrotResult[i] = CalculateSpecial_12(c, k, max_iter); break;
+                case 13: mandelbrotResult[i] = CalculateSpecial_13(c, k, max_iter); break;
+                case 14: mandelbrotResult[i] = CalculateSpecial_14(c, k, max_iter); break;
+                }
             }
         }
 
@@ -664,7 +679,7 @@ namespace MathsEx
             Complex<double> z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
-                z = z + Tan(z + k);
+                z = z * z + Sqrt(k + z);
 
                 ++iters;
             }
@@ -675,10 +690,10 @@ namespace MathsEx
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex<double> z(k);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
-                z = z + Tan(z + k);
+                z = z * z + c;
 
                 ++iters;
             }
@@ -692,7 +707,7 @@ namespace MathsEx
             Complex<double> z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
-                z = z + Tan(z + k);
+                z = z * z + c - k;
 
                 ++iters;
             }

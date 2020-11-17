@@ -184,5 +184,20 @@ namespace MathsEx
         return Complex<RealType>(re) / z;
     }
 
+    template <class RealType> Complex<RealType> Sqrt(const Complex<RealType>& z) restrict(amp, cpu)
+    {
+        using namespace concurrency::precise_math;
+
+        const auto x = z.Re();
+        const auto y = z.Im();
+
+        const auto xy2 = x * x + y * y;
+        const auto rxy2 = sqrt(xy2);
+
+        const auto re = sqrt((rxy2 + x) * 0.5);
+        const auto im = sqrt((rxy2 - x) * 0.5);
+        return {re, im};
+    }
+
 }   //namespace MathsEx
 

@@ -31,9 +31,10 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.mainSplitter = new System.Windows.Forms.SplitContainer();
             this.SplitControlContainer = new System.Windows.Forms.SplitContainer();
+            this.upDown1 = new System.Windows.Forms.NumericUpDown();
             this.cbWhichSet = new System.Windows.Forms.ComboBox();
             this.btnSaveBMP = new System.Windows.Forms.Button();
-            this.btnReset = new System.Windows.Forms.Button();
+            this.btnResetZoom = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnLoad = new System.Windows.Forms.Button();
             this.txtValueUnderMouse = new System.Windows.Forms.TextBox();
@@ -49,15 +50,15 @@
             this.txtMouseCoords = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txtMaxIterations = new System.Windows.Forms.TextBox();
-            this.upDown1 = new System.Windows.Forms.NumericUpDown();
+            this.btnResetJulia = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplitter)).BeginInit();
             this.mainSplitter.Panel1.SuspendLayout();
             this.mainSplitter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).BeginInit();
             this.SplitControlContainer.Panel1.SuspendLayout();
             this.SplitControlContainer.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.upDown1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).BeginInit();
             this.SuspendLayout();
             // 
             // mainSplitter
@@ -87,10 +88,11 @@
             // SplitControlContainer.Panel1
             // 
             this.SplitControlContainer.Panel1.BackColor = System.Drawing.Color.Black;
+            this.SplitControlContainer.Panel1.Controls.Add(this.btnResetJulia);
             this.SplitControlContainer.Panel1.Controls.Add(this.upDown1);
             this.SplitControlContainer.Panel1.Controls.Add(this.cbWhichSet);
             this.SplitControlContainer.Panel1.Controls.Add(this.btnSaveBMP);
-            this.SplitControlContainer.Panel1.Controls.Add(this.btnReset);
+            this.SplitControlContainer.Panel1.Controls.Add(this.btnResetZoom);
             this.SplitControlContainer.Panel1.Controls.Add(this.btnSave);
             this.SplitControlContainer.Panel1.Controls.Add(this.btnLoad);
             this.SplitControlContainer.Panel1.Controls.Add(this.txtValueUnderMouse);
@@ -110,6 +112,14 @@
             this.SplitControlContainer.Size = new System.Drawing.Size(280, 654);
             this.SplitControlContainer.SplitterDistance = 467;
             this.SplitControlContainer.TabIndex = 4;
+            // 
+            // upDown1
+            // 
+            this.upDown1.Location = new System.Drawing.Point(190, 13);
+            this.upDown1.Name = "upDown1";
+            this.upDown1.Size = new System.Drawing.Size(45, 20);
+            this.upDown1.TabIndex = 18;
+            this.upDown1.ValueChanged += new System.EventHandler(this.upDown1_ValueChanged);
             // 
             // cbWhichSet
             // 
@@ -133,7 +143,7 @@
             // 
             // btnSaveBMP
             // 
-            this.btnSaveBMP.Location = new System.Drawing.Point(12, 328);
+            this.btnSaveBMP.Location = new System.Drawing.Point(98, 299);
             this.btnSaveBMP.Name = "btnSaveBMP";
             this.btnSaveBMP.Size = new System.Drawing.Size(83, 23);
             this.btnSaveBMP.TabIndex = 16;
@@ -141,19 +151,19 @@
             this.btnSaveBMP.UseVisualStyleBackColor = true;
             this.btnSaveBMP.Click += new System.EventHandler(this.btnSaveBMP_Click);
             // 
-            // btnReset
+            // btnResetZoom
             // 
-            this.btnReset.Location = new System.Drawing.Point(190, 299);
-            this.btnReset.Name = "btnReset";
-            this.btnReset.Size = new System.Drawing.Size(83, 23);
-            this.btnReset.TabIndex = 15;
-            this.btnReset.Text = "Reset";
-            this.btnReset.UseVisualStyleBackColor = true;
-            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
+            this.btnResetZoom.Location = new System.Drawing.Point(9, 404);
+            this.btnResetZoom.Name = "btnResetZoom";
+            this.btnResetZoom.Size = new System.Drawing.Size(83, 23);
+            this.btnResetZoom.TabIndex = 15;
+            this.btnResetZoom.Text = "Reset Zoom";
+            this.btnResetZoom.UseVisualStyleBackColor = true;
+            this.btnResetZoom.Click += new System.EventHandler(this.btnReset_Click);
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(101, 299);
+            this.btnSave.Location = new System.Drawing.Point(9, 328);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(83, 23);
             this.btnSave.TabIndex = 14;
@@ -163,7 +173,7 @@
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(12, 299);
+            this.btnLoad.Location = new System.Drawing.Point(9, 299);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(83, 23);
             this.btnLoad.TabIndex = 13;
@@ -321,13 +331,15 @@
             this.txtMaxIterations.Text = "1024";
             this.txtMaxIterations.TextChanged += new System.EventHandler(this.txtMaxIterations_TextChanged);
             // 
-            // upDown1
+            // btnResetJulia
             // 
-            this.upDown1.Location = new System.Drawing.Point(190, 13);
-            this.upDown1.Name = "upDown1";
-            this.upDown1.Size = new System.Drawing.Size(45, 20);
-            this.upDown1.TabIndex = 18;
-            this.upDown1.ValueChanged += new System.EventHandler(this.upDown1_ValueChanged);
+            this.btnResetJulia.Location = new System.Drawing.Point(9, 375);
+            this.btnResetJulia.Name = "btnResetJulia";
+            this.btnResetJulia.Size = new System.Drawing.Size(83, 23);
+            this.btnResetJulia.TabIndex = 19;
+            this.btnResetJulia.Text = "Reset Julia";
+            this.btnResetJulia.UseVisualStyleBackColor = true;
+            this.btnResetJulia.Click += new System.EventHandler(this.btnResetJulia_Click);
             // 
             // MainForm
             // 
@@ -346,8 +358,8 @@
             this.SplitControlContainer.Panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).EndInit();
             this.SplitControlContainer.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.upDown1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -371,10 +383,11 @@
         private System.Windows.Forms.TextBox txtValueUnderMouse;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnLoad;
-        private System.Windows.Forms.Button btnReset;
+        private System.Windows.Forms.Button btnResetZoom;
         private System.Windows.Forms.Button btnSaveBMP;
         private System.Windows.Forms.ComboBox cbWhichSet;
         private System.Windows.Forms.NumericUpDown upDown1;
+        private System.Windows.Forms.Button btnResetJulia;
     }
 }
 

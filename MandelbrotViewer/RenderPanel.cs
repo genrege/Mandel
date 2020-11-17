@@ -43,6 +43,8 @@ namespace MandelbrotViewer
 
         public bool useGpu { get; set; }
         int[] palette_ = null;
+        int[] calculation_data_ = null;
+        int[] bitmap_ = null;
 
         public CoordinateSpace coordinateSpace()
         {
@@ -51,6 +53,29 @@ namespace MandelbrotViewer
 
         protected override void OnPaintBackground(PaintEventArgs e)
         {
+        }
+
+        public void setJulia(double x, double y)
+        {
+            JuliaSetX = x;
+            JuliaSetY = y;
+            if (FractalSetIndex == 1 || FractalSetIndex == 5 || FractalSetIndex == 8)
+                Render();
+        }
+
+        private void RenderPanel_MouseUp(object sender, MouseEventArgs e)
+        {
+            Capture = false;
+        }
+
+        private void RenderPanel_Resize(object sender, EventArgs e)
+        {
+            coord_.ScreenWidth = Width;
+            coord_.ScreenHeight = Height;
+            Invalidate();
+
+            calculation_data_ = new int[Width * Height];
+            bitmap_ = new int[Width * Height];
         }
 
         private void RenderPanel_MouseDown(object sender, MouseEventArgs e)
@@ -66,28 +91,13 @@ namespace MandelbrotViewer
             }
         }
 
-        private void RenderPanel_MouseUp(object sender, MouseEventArgs e)
-        {
-            Capture = false;
-        }
-
-        private void RenderPanel_Resize(object sender, EventArgs e)
-        {
-            coord_.ScreenWidth = Width;
-            coord_.ScreenHeight = Height;
-            Invalidate();
-        }
-
-        public void setJulia(double x, double y)
-        {
-            JuliaSetX = x;
-            JuliaSetY = y;
-            if (FractalSetIndex == 1 || FractalSetIndex == 5 || FractalSetIndex == 8)
-                Render();
-        }
-
+        Point lastMouseMoveLocation = Point.Empty;
         private void RenderPanel_MouseMove(object sender, MouseEventArgs e)
         {
+            if (e.Location == lastMouseMoveLocation)
+                return;
+            lastMouseMoveLocation = e.Location;
+
             var cc = coord_.SetFromScreen(e.Location.X, e.Location.Y);
             CurrentSetX = cc.X;
             CurrentSetY = cc.Y;
@@ -196,9 +206,9 @@ namespace MandelbrotViewer
                 case 5:
                     {
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
-                        var calculation_data = MandelbrotAPI.CalculateJulia(JuliaSetX, JuliaSetY, useGpu, MaxIterations, coord_);
-                        var bitmap = MandelbrotAPI.PaletteTransform(calculation_data, palette_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                        MandelbrotAPI.CalculateJulia2(JuliaSetX, JuliaSetY, useGpu, MaxIterations, coord_, ref calculation_data_);
+                        MandelbrotAPI.PaletteTransform2(calculation_data_, palette_, ref bitmap_);
+                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap_);
                     }
                     break;
                 case 6:

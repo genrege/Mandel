@@ -88,6 +88,13 @@ namespace MandelbrotViewer
             return result;
         }
 
+        public static int[] CalculateJulia2(double re, double im, bool gpu, int maxIterations, CoordinateSpace cspace, ref int[] result)
+        {
+            MandelbrotDLLInterface.calculateJulia2(re, im, gpu, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, ref result);
+
+            return result;
+        }
+
         public static int[] CalculateSpecial(int func, double re, double im, bool gpu, int maxIterations, CoordinateSpace cspace)
         {
             int[] result;
@@ -113,6 +120,11 @@ namespace MandelbrotViewer
             MandelbrotDLLInterface.paletteTransform(input, palette, out result);
 
             return result;
+        }
+
+        public static void PaletteTransform2(int[] input, int[] palette, ref int[] result)
+        {
+            MandelbrotDLLInterface.paletteTransform2(input, palette, ref result);
         }
 
         public static int[] StandardPalette(int max_iterations)

@@ -360,6 +360,24 @@ extern "C" DLL_API void calculateJulia(double re, double im, bool gpu, int maxIt
     SafeArrayUnlock(*ppsa);
 }
 
+//  Managed client API to calculate the Julia set data only
+extern "C" DLL_API void calculateJulia2(double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+{
+    const unsigned array_size = width * height;
+
+    unsigned* result;
+    SafeArrayLock(*ppsa);
+    SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
+
+    if (gpu)
+        MandelbrotSet<double>::gpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+    else
+        MandelbrotSet<double>::cpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+
+    SafeArrayUnaccessData(*ppsa);
+    SafeArrayUnlock(*ppsa);
+}
+
 extern "C" DLL_API void calculateSpecial(int func, double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
     const unsigned array_size = width * height;
@@ -445,6 +463,36 @@ extern "C" void renderArrayToDevice(HDC hdc, int width, int height, SAFEARRAY* i
     SafeArrayAccessData(input, (void HUGEP**) & input_data);
 
     sendToDisplay(hdc, width, height, input_data);
+
+    SafeArrayUnaccessData(input);
+    SafeArrayUnlock(input);
+}
+
+//  Managed client API to transform data according to an input palette.  
+//  The operation is ppsaResult[i] = palette[input[i]].
+extern "C" void paletteTransform2(SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)
+{
+    SafeArrayLock(input);
+    unsigned array_size = input->rgsabound->cElements;
+    unsigned* input_data;
+    SafeArrayAccessData(input, (void HUGEP**)&input_data);
+
+    SafeArrayLock(palette);
+    unsigned palette_size = palette->rgsabound->cElements;
+    unsigned* palette_data;
+    SafeArrayAccessData(palette, (void HUGEP**)&palette_data);
+
+    unsigned* result;
+    SafeArrayLock(*ppsaResult);
+    SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
+
+    MandelbrotSet<double>::gpuPaletteKernel(array_size, input_data, result, palette_size, (MandelbrotSet<double>::rgb*)palette_data);
+
+    SafeArrayUnaccessData(*ppsaResult);
+    SafeArrayUnlock(*ppsaResult);
+
+    SafeArrayUnaccessData(palette);
+    SafeArrayUnlock(palette);
 
     SafeArrayUnaccessData(input);
     SafeArrayUnlock(input);
