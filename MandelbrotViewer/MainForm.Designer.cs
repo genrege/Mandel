@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.mainSplitter = new System.Windows.Forms.SplitContainer();
             this.SplitControlContainer = new System.Windows.Forms.SplitContainer();
+            this.btnResetJulia = new System.Windows.Forms.Button();
             this.upDown1 = new System.Windows.Forms.NumericUpDown();
             this.cbWhichSet = new System.Windows.Forms.ComboBox();
             this.btnSaveBMP = new System.Windows.Forms.Button();
@@ -50,7 +51,7 @@
             this.txtMouseCoords = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txtMaxIterations = new System.Windows.Forms.TextBox();
-            this.btnResetJulia = new System.Windows.Forms.Button();
+            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplitter)).BeginInit();
             this.mainSplitter.Panel1.SuspendLayout();
             this.mainSplitter.SuspendLayout();
@@ -88,6 +89,7 @@
             // SplitControlContainer.Panel1
             // 
             this.SplitControlContainer.Panel1.BackColor = System.Drawing.Color.Black;
+            this.SplitControlContainer.Panel1.Controls.Add(this.linkLabel1);
             this.SplitControlContainer.Panel1.Controls.Add(this.btnResetJulia);
             this.SplitControlContainer.Panel1.Controls.Add(this.upDown1);
             this.SplitControlContainer.Panel1.Controls.Add(this.cbWhichSet);
@@ -112,6 +114,16 @@
             this.SplitControlContainer.Size = new System.Drawing.Size(280, 654);
             this.SplitControlContainer.SplitterDistance = 467;
             this.SplitControlContainer.TabIndex = 4;
+            // 
+            // btnResetJulia
+            // 
+            this.btnResetJulia.Location = new System.Drawing.Point(9, 375);
+            this.btnResetJulia.Name = "btnResetJulia";
+            this.btnResetJulia.Size = new System.Drawing.Size(83, 23);
+            this.btnResetJulia.TabIndex = 19;
+            this.btnResetJulia.Text = "Reset Julia";
+            this.btnResetJulia.UseVisualStyleBackColor = true;
+            this.btnResetJulia.Click += new System.EventHandler(this.btnResetJulia_Click);
             // 
             // upDown1
             // 
@@ -331,15 +343,17 @@
             this.txtMaxIterations.Text = "1024";
             this.txtMaxIterations.TextChanged += new System.EventHandler(this.txtMaxIterations_TextChanged);
             // 
-            // btnResetJulia
+            // linkLabel1
             // 
-            this.btnResetJulia.Location = new System.Drawing.Point(9, 375);
-            this.btnResetJulia.Name = "btnResetJulia";
-            this.btnResetJulia.Size = new System.Drawing.Size(83, 23);
-            this.btnResetJulia.TabIndex = 19;
-            this.btnResetJulia.Text = "Reset Julia";
-            this.btnResetJulia.UseVisualStyleBackColor = true;
-            this.btnResetJulia.Click += new System.EventHandler(this.btnResetJulia_Click);
+            this.linkLabel1.AutoSize = true;
+            this.linkLabel1.LinkColor = System.Drawing.Color.Red;
+            this.linkLabel1.Location = new System.Drawing.Point(13, 434);
+            this.linkLabel1.Name = "linkLabel1";
+            this.linkLabel1.Size = new System.Drawing.Size(179, 13);
+            this.linkLabel1.TabIndex = 20;
+            this.linkLabel1.TabStop = true;
+            this.linkLabel1.Text = "https://github.com/genrege/Mandel";
+            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
             // MainForm
             // 
@@ -388,6 +402,7 @@
         private System.Windows.Forms.ComboBox cbWhichSet;
         private System.Windows.Forms.NumericUpDown upDown1;
         private System.Windows.Forms.Button btnResetJulia;
+        private System.Windows.Forms.LinkLabel linkLabel1;
     }
 }
 
