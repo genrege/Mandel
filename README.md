@@ -1,5 +1,12 @@
 # Mandel
 Mandelbrot/Julia and related fractal interactive rendering.
+
+Basic instructions:
+- Select the set to render from the dropdown
+- Some sets have an additional coordinate - specify using Ctrl+Click in ther overview or main panels
+- Alternate "Special Experimental" sets can be selected using the up/down selector control
+- For large numbers of iterations, see the Window TDR item before for configuration
+
 Limitations/TODO:
 - Uses Microsoft C++ AMP for GPU compute.  This only works in Release mode and appears to be a Microsoft bug.
 - To be ported to OpenCL, work in progress
