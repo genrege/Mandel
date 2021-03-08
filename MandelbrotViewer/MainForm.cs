@@ -170,11 +170,12 @@ namespace MandelbrotViewer
 
         private void btnLoad_Click(object sender, EventArgs e)
         {
-
+            MessageBox.Show("Load state - not implemented");
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
+            MessageBox.Show("Save state - not implemented");
         }
 
         private void btnReset_Click(object sender, EventArgs e)
