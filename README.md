@@ -28,3 +28,8 @@ Future functionality:
 - add 3D rendering/fly-throughs of the sets
 - palette editing (possibly an external editing program with import into the render engine)
 
+Hardware/OS:
+- GPU: tested on AMD Radeon VII, NVidia 2070 Super and NVidia 1660 Super
+- CPU: AMD 3900X, AMD 3600X
+- Windows 10
+
