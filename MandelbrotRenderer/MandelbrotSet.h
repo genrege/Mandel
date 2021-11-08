@@ -69,67 +69,68 @@ namespace MathsEx
             }
         }
 
-        void CalculateSetCPU(const unsigned maxIters) restrict(cpu)
+        void CalculateSetCPU(const accelerator_view& v, const unsigned maxIters) restrict(cpu)
         {
             cpuMandelbrotKernel(m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             rgb* palette = new rgb[maxIters];
             setPalette(maxIters, palette);
-            gpuPaletteKernel(m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
             delete[] palette;
         }
 
         //Uses AMP to calculate the entire set over the space (m_x0, m_x1)-(m_x1, m_y1) in steps (m_xstep, m_ystep)
-        void CalculateSet(const unsigned maxIters) restrict(cpu)
+        void CalculateSet(const accelerator_view& v, const unsigned maxIters) restrict(cpu)
         {
-            gpuMandelbrotKernel(m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
+            gpuMandelbrotKernel(v, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             rgb* palette = new rgb[maxIters];
             setPalette(maxIters, palette);
-            gpuPaletteKernel(m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
             delete[] palette;
         }
 
-        void CalculateBuddha(bool anti_buddha, const unsigned maxIters) restrict(cpu)
+        void CalculateBuddha(const accelerator_view& v, bool anti_buddha, const unsigned maxIters) restrict(cpu)
         {
-            gpuCalculationDensity(anti_buddha, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_density);
+            gpuCalculationDensity(v, anti_buddha, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_density);
 
             rgb* palette = new rgb[maxIters];
             setPaletteBuddha(maxIters, palette, m_density, m_wx * m_wy);
-            gpuPaletteKernel(m_wx * m_wy, m_density, m_bmp, maxIters, palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_density, m_bmp, maxIters, palette);
             delete[] palette;
         }
 
-        void CalculateJulia(const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
+        void CalculateJulia(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
         {
-            gpuJuliaKernel(k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
+            gpuJuliaKernel(v, k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             rgb* palette = new rgb[maxIters];
             setPaletteJulia(maxIters, palette);
-            gpuPaletteKernel(m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
             delete[] palette;
         }
 
-        void CalculateJuliaCPU(const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
+        void CalculateJuliaCPU(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
         {
             cpuJuliaKernel(k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             rgb* palette = new rgb[maxIters];
             setPaletteJulia(maxIters, palette);
-            gpuPaletteKernel(m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
             delete[] palette;
         }
 
         static void setPalette(size_t size, rgb* palette)
         {
+            const double scale = 1.0 / size;
             for (size_t i = 0; i < size; ++i)
             {
-                const double s1 = double(i * 3) / size;
-                const double s2 = double(i) / size;
-                const double s3 = double(i * 5 / 2) / size;
+                const double s1 = double(i * 3) * scale;
+                const double s2 = double(i) * scale;
+                const double s3 = double(i * 5 / 2) * scale;
 
-                const double f = min(1.0, (1 - pow(s1 - 1, 8)));
-                const double g = min(1.0, (1 - pow(s2 - 1, 4)));
+                const double f = min(1.0, (1 - pow(s1 - 1, 4)));
+                const double g = min(1.0, (1 - pow(s2 - 1, 3)));
                 const double h = min(1.0, (1 - pow(s3 - 1, 2)));
 
                 palette[i].r = char(255 * f);
@@ -172,7 +173,7 @@ namespace MathsEx
                 const double s2 = min(1.0, double(i) * palette_scale);
                 const double s3 = min(1.0, double(i) * palette_scale);
 
-                const double f = min(1.0, tanh(s1));
+                const double f = min(1.0, tanh(s2));
                 const double g = min(1.0, (1 - pow(s1 - 1, 2)));
                 const double h = min(1.0, (1 - pow(s3 - 1, 2)));
 
@@ -209,11 +210,11 @@ namespace MathsEx
             }
         }
 
-        static void gpuMandelbrotKernel(unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        static void gpuMandelbrotKernel(const accelerator_view& v, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
             const auto num_points = display_w * display_h;
 
-            const auto set_width  = x1 - x0;
+            const auto set_width = x1 - x0;
             const auto set_height = y1 - y0;
 
             const auto set_step_x = set_width / double(display_w);
@@ -222,7 +223,7 @@ namespace MathsEx
             concurrency::extent<1> e(num_points);
             concurrency::array_view<unsigned, 1> mandelbrotResult(e, iters);
 
-            concurrency::parallel_for_each(mandelbrotResult.extent,
+            concurrency::parallel_for_each(v, mandelbrotResult.extent,
                 [display_w, display_h, x0, y0, set_step_x, set_step_y, max_iter, mandelbrotResult](index<1> idx) restrict(amp, cpu)
                 {
                     const auto array_x = idx[0] % display_w;
@@ -305,7 +306,7 @@ namespace MathsEx
         }
 
 
-        static void gpuSpecialKernel(int func, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        static void gpuSpecialKernel(const accelerator_view& v, int func, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
             const auto num_points = display_w * display_h;
 
@@ -318,7 +319,7 @@ namespace MathsEx
             concurrency::extent<1> e(num_points);
             concurrency::array_view<unsigned, 1> mandelbrotResult(e, iters);
 
-            concurrency::parallel_for_each(mandelbrotResult.extent,
+            concurrency::parallel_for_each(v, mandelbrotResult.extent,
                 [func, k, display_w, display_h, x0, y0, set_step_x, set_step_y, max_iter, mandelbrotResult](index<1> idx) restrict(amp, cpu)
                 {
                     const auto array_x = idx[0] % display_w;
@@ -350,7 +351,7 @@ namespace MathsEx
             mandelbrotResult.discard_data();
         }
 
-        static void gpuJuliaKernel(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        static void gpuJuliaKernel(const accelerator_view& v, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
             const auto num_points = display_w * display_h;
 
@@ -364,7 +365,7 @@ namespace MathsEx
             concurrency::array_view<unsigned, 1> mandelbrotResult(e, iters);
 
 
-            concurrency::parallel_for_each(mandelbrotResult.extent,
+            concurrency::parallel_for_each(v, mandelbrotResult.extent,
                 [k, display_w, display_h, x0, y0, set_step_x, set_step_y, max_iter, mandelbrotResult](index<1> idx) restrict(amp, cpu)
                 {
                     const auto array_x = idx[0] % display_w;
@@ -388,7 +389,7 @@ namespace MathsEx
         //points change  whenever the view changes.
         //And this computation is relatively slow, probably because of the extra floating point calculations here.
         //Interesting to see the Mandelbrot "buddha" though!
-        static void gpuCalculationDensity(bool anti_buddha, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* dmap)
+        static void gpuCalculationDensity(const accelerator_view& v, bool anti_buddha, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* dmap)
         {
             const auto num_points = display_w * display_h;
 
@@ -404,7 +405,7 @@ namespace MathsEx
             const double r_set_step_x = 1.0 / set_step_x;
             const double r_set_step_y = 1.0 / set_step_y;
 
-            concurrency::parallel_for_each(e,
+            concurrency::parallel_for_each(v, e,
                 [anti_buddha, display_w, display_h, x0, y0, set_step_x, set_step_y, r_set_step_x, r_set_step_y, max_iter, edmap](index<1> idx) restrict(amp, cpu)
                 {
                     const auto array_x = idx[0] % display_w;
@@ -446,7 +447,7 @@ namespace MathsEx
         //Use this function to map iters->palette with the result going into bmp
         //No bounds checking is done, so size_palette must be at least max(iters[first..last]) in size
         //iters and bmp must have the same dimension (size)
-        static void gpuPaletteKernel(unsigned size, unsigned* iters, unsigned* bmp, unsigned size_palette, rgb* palette)
+        static void gpuPaletteKernel(const accelerator_view& v, unsigned size, unsigned* iters, unsigned* bmp, unsigned size_palette, rgb* palette)
         {
             concurrency::extent<1> e(size);
             concurrency::array_view<unsigned, 1> av_iters(e, iters);
@@ -455,7 +456,7 @@ namespace MathsEx
             concurrency::extent<1> ep(size_palette);
             concurrency::array_view<unsigned, 1> av_palette(ep, (unsigned*)palette);
 
-            concurrency::parallel_for_each(e, [av_iters, av_bmp, av_palette](index<1> idx) restrict(amp, cpu)
+            concurrency::parallel_for_each(v, e, [av_iters, av_bmp, av_palette](index<1> idx) restrict(amp, cpu)
                 {
                     av_bmp[idx] = av_palette[av_iters[idx]];
                 });

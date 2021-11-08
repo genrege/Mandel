@@ -25,6 +25,8 @@ namespace MandelbrotViewer
         RenderPanel renderPanel = new RenderPanel();
         OverviewPanel overviewPanel = new OverviewPanel();
 
+        public int gpuIndex { get; set; }
+
         private void MainForm_Load(object sender, EventArgs e)
         {
             renderPanel.Dock = DockStyle.Fill;
@@ -39,6 +41,17 @@ namespace MandelbrotViewer
 
             trackBarMaxIterations.Value = renderPanel.MaxIterations;
             renderPanel.useGpu = checkBox1.Checked;
+            renderPanel.gpuIndex = gpuIndex;
+
+            string[] gpus = new string[100];
+            MandelbrotDLLInterface.GPU(ref gpus);
+
+            foreach (var gpu in gpus)
+            {
+                listGPU.Items.Add(gpu);
+            }
+            listGPU.SelectedIndex = 0;
+
             sliderMax.Text = "6000";
             txtMaxIterations.Text = "100";
             upDown1.Value = 0;
@@ -126,6 +139,7 @@ namespace MandelbrotViewer
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             renderPanel.useGpu = checkBox1.Checked;
+            listGPU.Visible = checkBox1.Checked;
             renderPanel.Invalidate();
         }
 
@@ -233,92 +247,92 @@ namespace MandelbrotViewer
                 if (System.IO.Path.GetExtension(saveBmpDialog.FileName) == ".jpg")
                 {
                     if (renderPanel.FractalSetIndex == 0)
-                        MandelbrotAPI.SaveJPGToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveJPGToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 1)
-                        MandelbrotAPI.SaveJuliaJPGToFile(renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveJuliaJPGToFile(gpuIndex, renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 2)
-                        MandelbrotAPI.SaveBuddhaJPGToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveBuddhaJPGToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 3)
-                        MandelbrotAPI.SaveAntiBuddhaJPGToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveAntiBuddhaJPGToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 4)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(gpuIndex, true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 5)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateJulia(renderPanel.JuliaSetX, renderPanel.JuliaSetY, true,int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateJulia(gpuIndex, renderPanel.JuliaSetX, renderPanel.JuliaSetY, true,int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 6)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateBuddha(false, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, false, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 7)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateBuddha(true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 8)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateSpecial(renderPanel.SpecialFunc, renderPanel.JuliaSetX, renderPanel.JuliaSetY, true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateSpecial(gpuIndex, renderPanel.SpecialFunc, renderPanel.JuliaSetX, renderPanel.JuliaSetY, true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToJPEG(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                 }
                 else
                 {
                     if (renderPanel.FractalSetIndex == 0)
-                        MandelbrotAPI.SaveBitmapToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveBitmapToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 1)
-                        MandelbrotAPI.SaveJuliaBitmapToFile(renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveJuliaBitmapToFile(gpuIndex, renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 2)
-                        MandelbrotAPI.SaveBuddhaBitmapToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveBuddhaBitmapToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 3)
-                        MandelbrotAPI.SaveAntiBuddhaBitmapToFile(this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveAntiBuddhaBitmapToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 4)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(gpuIndex, true,  int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 5)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateJulia(renderPanel.JuliaSetX, renderPanel.JuliaSetY, true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateJulia(gpuIndex, renderPanel.JuliaSetX, renderPanel.JuliaSetY, true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 6)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateBuddha(false, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, false, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 7)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateBuddha(true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.BuddhaPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                     else if (renderPanel.FractalSetIndex == 8)
                     {
-                        var calculation_data = MandelbrotAPI.CalculateSpecial(renderPanel.SpecialFunc, renderPanel.JuliaSetX, renderPanel.JuliaSetY, true, int.Parse(txtMaxIterations.Text), extCoord);
+                        var calculation_data = MandelbrotAPI.CalculateSpecial(gpuIndex, renderPanel.SpecialFunc, renderPanel.JuliaSetX, renderPanel.JuliaSetY, true, int.Parse(txtMaxIterations.Text), extCoord);
                         var palette = MandelbrotAPI.StandardPalette(int.Parse(txtMaxIterations.Text));
-                        var result = MandelbrotAPI.PaletteTransform(calculation_data, palette);
+                        var result = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette);
                         MandelbrotAPI.RenderArrayToBitmap(this.CreateGraphics().GetHdc(), (int)wx, (int)wy, result, saveBmpDialog.FileName);
                     }
                 }
@@ -359,6 +373,13 @@ namespace MandelbrotViewer
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             System.Diagnostics.Process.Start(linkLabel1.Text);
+        }
+
+        private void listGPU_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            gpuIndex = listGPU.SelectedIndex;
+            renderPanel.gpuIndex = gpuIndex;
+            overviewPanel.gpuIndex = gpuIndex;
         }
     }
 }

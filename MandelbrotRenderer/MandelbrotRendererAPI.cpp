@@ -16,13 +16,12 @@ namespace
     {
         BITMAP bmp;
         PBITMAPINFO pbmi;
-        WORD    cClrBits;
 
         // Retrieve the bitmap color format, width, and height.  
         GetObject(hBmp, sizeof(BITMAP), (LPSTR)&bmp);
 
         // Convert the color format to a count of bits.  
-        cClrBits = (WORD)(bmp.bmPlanes * bmp.bmBitsPixel);
+        auto cClrBits = bmp.bmPlanes * bmp.bmBitsPixel;
         if (cClrBits == 1)
             cClrBits = 1;
         else if (cClrBits <= 4)
@@ -39,10 +38,11 @@ namespace
         // contains a BITMAPINFOHEADER structure and an array of RGBQUAD  
         // data structures.)  
 
+        const auto mag = 1 << cClrBits;
         if (cClrBits < 24)
             pbmi = (PBITMAPINFO)LocalAlloc(LPTR,
                 sizeof(BITMAPINFOHEADER) +
-                sizeof(RGBQUAD) * (1u << cClrBits));
+                sizeof(RGBQUAD) * mag);
 
         // There is no RGBQUAD array for these formats: 24-bit-per-pixel or 32-bit-per-pixel 
 
@@ -231,91 +231,129 @@ namespace
         DeleteObject(bmp);
         DeleteDC(hmemDC);
     }
+
+    auto gpu_accelerator(int gpuIndex)
+    {
+        const auto& accls = accelerator::get_all();
+        return accelerator(accls[gpuIndex]).default_view;
+    }
 }
 
-extern "C" void render(HDC hdc, bool gpu, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
+extern "C" int countGPU()
+{
+    std::vector<accelerator> accls = accelerator::get_all();
+    return static_cast<int>(accls.size());
+}
+
+extern "C" void GPU(SAFEARRAY** ppsa)
+{
+    const auto& accls = accelerator::get_all();
+
+    size_t count = accls.size();;
+
+    SAFEARRAYBOUND rgsa;
+    rgsa.lLbound = 0;
+    rgsa.cElements = static_cast<ULONG>(count);
+    *ppsa = SafeArrayCreate(VT_BSTR, 1, &rgsa);
+    
+    unsigned* result;
+    SafeArrayLock(*ppsa);
+    SafeArrayAccessData(*ppsa, (void HUGEP**)&result);
+
+    for (size_t i = 0; i < accls.size(); ++i)
+    {
+        const auto& accl = accls[i];
+        const auto& desc = accl.description;
+        (void)SafeArrayPutElement(*ppsa, (LONG*)&i, SysAllocString(desc.c_str()));
+    }
+
+    SafeArrayUnaccessData(*ppsa);
+    SafeArrayUnlock(*ppsa);
+}
+
+extern "C" void render(int gpuIndex, HDC hdc, bool gpu, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
     if (gpu)
-        mset.CalculateSet(maxIterations);
+        mset.CalculateSet(gpu_accelerator(gpuIndex), maxIterations);
     else
-        mset.CalculateSetCPU(maxIterations);
+        mset.CalculateSetCPU(gpu_accelerator(gpuIndex), maxIterations);
 
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
 
-extern "C" void renderJulia(HDC hdc, bool gpu, int maxIterations, double re, double im, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
+extern "C" void renderJulia(int gpuIndex, HDC hdc, bool gpu, int maxIterations, double re, double im, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
     if (gpu)
-        mset.CalculateJulia(Complex<double>(re, im), maxIterations);
+        mset.CalculateJulia(gpu_accelerator(gpuIndex), Complex<double>(re, im), maxIterations);
     else
-        mset.CalculateJuliaCPU(Complex<double>(re, im), maxIterations);
+        mset.CalculateJuliaCPU(gpu_accelerator(gpuIndex), Complex<double>(re, im), maxIterations);
 
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
 
-extern "C" void renderBuddha(HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
+extern "C" void renderBuddha(int gpuIndex, HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateBuddha(antiBuddha, maxIterations);
+    mset.CalculateBuddha(gpu_accelerator(gpuIndex), antiBuddha, maxIterations);
 
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
 
-extern "C" void saveMandelbrotBitmap(HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveMandelbrotBitmap(int gpuIndex, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateSet(maxIterations);
+    mset.CalculateSet(gpu_accelerator(gpuIndex), maxIterations);
     saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveJuliaBitmap(double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveJuliaBitmap(int gpuIndex, double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateJulia(Complex<double>(re, im), maxIterations);
+    mset.CalculateJulia(gpu_accelerator(gpuIndex), Complex<double>(re, im), maxIterations);
     saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveBuddhaBitmap(HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveBuddhaBitmap(int gpuIndex, HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateBuddha(antiBuddha, maxIterations);
+    mset.CalculateBuddha(gpu_accelerator(gpuIndex), antiBuddha, maxIterations);
     saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveMandelbrotJPG(HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveMandelbrotJPG(int gpuIndex, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateSet(maxIterations);
+    mset.CalculateSet(gpu_accelerator(gpuIndex), maxIterations);
     saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveJuliaJPG(double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveJuliaJPG(int gpuIndex, double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateJulia(Complex<double>(re, im), maxIterations);
+    mset.CalculateJulia(gpu_accelerator(gpuIndex), Complex<double>(re, im), maxIterations);
     saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveBuddhaJPG(HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveBuddhaJPG(int gpuIndex, HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
     MandelbrotSet<double> mset;
     mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateBuddha(antiBuddha, maxIterations);
+    mset.CalculateBuddha(gpu_accelerator(gpuIndex), antiBuddha, maxIterations);
     saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
 //  Managed client API to calculate the set data only
-extern "C" DLL_API void calculateMandelbrot(bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY** ppsa)
+extern "C" DLL_API void calculateMandelbrot(int gpuIndex, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY** ppsa)
 {
     const unsigned array_size = width * height;
     
@@ -329,7 +367,7 @@ extern "C" DLL_API void calculateMandelbrot(bool gpu, int maxIterations, int wid
     SafeArrayAccessData(*ppsa, (void HUGEP**)&result);
 
     if (gpu)
-        MandelbrotSet<double>::gpuMandelbrotKernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+        MandelbrotSet<double>::gpuMandelbrotKernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
     else
         MandelbrotSet<double>::cpuMandelbrotKernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
@@ -338,7 +376,7 @@ extern "C" DLL_API void calculateMandelbrot(bool gpu, int maxIterations, int wid
 }
 
 //  Managed client API to calculate the Julia set data only
-extern "C" DLL_API void calculateJulia(double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+extern "C" DLL_API void calculateJulia(int gpuIndex, double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
     const unsigned array_size = width * height;
 
@@ -352,7 +390,7 @@ extern "C" DLL_API void calculateJulia(double re, double im, bool gpu, int maxIt
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
     if (gpu)
-        MandelbrotSet<double>::gpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+        MandelbrotSet<double>::gpuJuliaKernel(gpu_accelerator(gpuIndex), MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
     else
         MandelbrotSet<double>::cpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
@@ -361,7 +399,7 @@ extern "C" DLL_API void calculateJulia(double re, double im, bool gpu, int maxIt
 }
 
 //  Managed client API to calculate the Julia set data only
-extern "C" DLL_API void calculateJulia2(double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+extern "C" DLL_API void calculateJulia2(int gpuIndex, double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
     const unsigned array_size = width * height;
 
@@ -370,7 +408,7 @@ extern "C" DLL_API void calculateJulia2(double re, double im, bool gpu, int maxI
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
     if (gpu)
-        MandelbrotSet<double>::gpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+        MandelbrotSet<double>::gpuJuliaKernel(gpu_accelerator(gpuIndex), MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
     else
         MandelbrotSet<double>::cpuJuliaKernel(MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
@@ -378,7 +416,7 @@ extern "C" DLL_API void calculateJulia2(double re, double im, bool gpu, int maxI
     SafeArrayUnlock(*ppsa);
 }
 
-extern "C" DLL_API void calculateSpecial(int func, double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+extern "C" DLL_API void calculateSpecial(int gpuIndex, int func, double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
     const unsigned array_size = width * height;
 
@@ -392,7 +430,7 @@ extern "C" DLL_API void calculateSpecial(int func, double re, double im, bool gp
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
     if (gpu)
-        MandelbrotSet<double>::gpuSpecialKernel(func, MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+        MandelbrotSet<double>::gpuSpecialKernel(gpu_accelerator(gpuIndex), func, MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
     else
         MandelbrotSet<double>::cpuSpecialKernel(func, MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
@@ -400,7 +438,7 @@ extern "C" DLL_API void calculateSpecial(int func, double re, double im, bool gp
     SafeArrayUnlock(*ppsa);
 }
 
-extern "C" DLL_API void calculateBuddha(bool antiBuddha, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
+extern "C" DLL_API void calculateBuddha(int gpuIndex, bool antiBuddha, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
     const unsigned array_size = width * height;
 
@@ -413,7 +451,7 @@ extern "C" DLL_API void calculateBuddha(bool antiBuddha, int maxIterations, int 
     SafeArrayLock(*ppsa);
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
-    MandelbrotSet<double>::gpuCalculationDensity(antiBuddha, width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+    MandelbrotSet<double>::gpuCalculationDensity(gpu_accelerator(gpuIndex), antiBuddha, width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
     SafeArrayUnaccessData(*ppsa);
     SafeArrayUnlock(*ppsa);
@@ -421,7 +459,7 @@ extern "C" DLL_API void calculateBuddha(bool antiBuddha, int maxIterations, int 
 
 //  Managed client API to transform data according to an input palette.  
 //  The operation is ppsaResult[i] = palette[input[i]].
-extern "C" void paletteTransform(SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)
+extern "C" void paletteTransform(int gpuIndex, SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)
 {
     SafeArrayLock(input);
     unsigned array_size = input->rgsabound->cElements;
@@ -442,7 +480,7 @@ extern "C" void paletteTransform(SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    MandelbrotSet<double>::gpuPaletteKernel(array_size, input_data, result, palette_size, (MandelbrotSet<double>::rgb*)palette_data);
+    MandelbrotSet<double>::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MandelbrotSet<double>::rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);
@@ -470,7 +508,7 @@ extern "C" void renderArrayToDevice(HDC hdc, int width, int height, SAFEARRAY* i
 
 //  Managed client API to transform data according to an input palette.  
 //  The operation is ppsaResult[i] = palette[input[i]].
-extern "C" void paletteTransform2(SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)
+extern "C" void paletteTransform2(int gpuIndex, SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)
 {
     SafeArrayLock(input);
     unsigned array_size = input->rgsabound->cElements;
@@ -486,7 +524,7 @@ extern "C" void paletteTransform2(SAFEARRAY* input, SAFEARRAY* palette, SAFEARRA
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    MandelbrotSet<double>::gpuPaletteKernel(array_size, input_data, result, palette_size, (MandelbrotSet<double>::rgb*)palette_data);
+    MandelbrotSet<double>::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MandelbrotSet<double>::rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);

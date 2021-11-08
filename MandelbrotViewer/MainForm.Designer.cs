@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.mainSplitter = new System.Windows.Forms.SplitContainer();
             this.SplitControlContainer = new System.Windows.Forms.SplitContainer();
+            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.btnResetJulia = new System.Windows.Forms.Button();
             this.upDown1 = new System.Windows.Forms.NumericUpDown();
             this.cbWhichSet = new System.Windows.Forms.ComboBox();
@@ -51,7 +52,7 @@
             this.txtMouseCoords = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txtMaxIterations = new System.Windows.Forms.TextBox();
-            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
+            this.listGPU = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplitter)).BeginInit();
             this.mainSplitter.Panel1.SuspendLayout();
             this.mainSplitter.SuspendLayout();
@@ -89,6 +90,7 @@
             // SplitControlContainer.Panel1
             // 
             this.SplitControlContainer.Panel1.BackColor = System.Drawing.Color.Black;
+            this.SplitControlContainer.Panel1.Controls.Add(this.listGPU);
             this.SplitControlContainer.Panel1.Controls.Add(this.linkLabel1);
             this.SplitControlContainer.Panel1.Controls.Add(this.btnResetJulia);
             this.SplitControlContainer.Panel1.Controls.Add(this.upDown1);
@@ -115,9 +117,21 @@
             this.SplitControlContainer.SplitterDistance = 467;
             this.SplitControlContainer.TabIndex = 4;
             // 
+            // linkLabel1
+            // 
+            this.linkLabel1.AutoSize = true;
+            this.linkLabel1.LinkColor = System.Drawing.Color.Red;
+            this.linkLabel1.Location = new System.Drawing.Point(13, 422);
+            this.linkLabel1.Name = "linkLabel1";
+            this.linkLabel1.Size = new System.Drawing.Size(179, 13);
+            this.linkLabel1.TabIndex = 20;
+            this.linkLabel1.TabStop = true;
+            this.linkLabel1.Text = "https://github.com/genrege/Mandel";
+            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            // 
             // btnResetJulia
             // 
-            this.btnResetJulia.Location = new System.Drawing.Point(9, 375);
+            this.btnResetJulia.Location = new System.Drawing.Point(9, 363);
             this.btnResetJulia.Name = "btnResetJulia";
             this.btnResetJulia.Size = new System.Drawing.Size(83, 23);
             this.btnResetJulia.TabIndex = 19;
@@ -127,7 +141,7 @@
             // 
             // upDown1
             // 
-            this.upDown1.Location = new System.Drawing.Point(190, 13);
+            this.upDown1.Location = new System.Drawing.Point(223, 13);
             this.upDown1.Name = "upDown1";
             this.upDown1.Size = new System.Drawing.Size(45, 20);
             this.upDown1.TabIndex = 18;
@@ -149,13 +163,13 @@
             "Special Experimental API"});
             this.cbWhichSet.Location = new System.Drawing.Point(9, 12);
             this.cbWhichSet.Name = "cbWhichSet";
-            this.cbWhichSet.Size = new System.Drawing.Size(175, 21);
+            this.cbWhichSet.Size = new System.Drawing.Size(208, 21);
             this.cbWhichSet.TabIndex = 17;
             this.cbWhichSet.SelectedIndexChanged += new System.EventHandler(this.cbWhichSet_SelectedIndexChanged);
             // 
             // btnSaveBMP
             // 
-            this.btnSaveBMP.Location = new System.Drawing.Point(98, 299);
+            this.btnSaveBMP.Location = new System.Drawing.Point(98, 287);
             this.btnSaveBMP.Name = "btnSaveBMP";
             this.btnSaveBMP.Size = new System.Drawing.Size(83, 23);
             this.btnSaveBMP.TabIndex = 16;
@@ -165,7 +179,7 @@
             // 
             // btnResetZoom
             // 
-            this.btnResetZoom.Location = new System.Drawing.Point(9, 404);
+            this.btnResetZoom.Location = new System.Drawing.Point(9, 392);
             this.btnResetZoom.Name = "btnResetZoom";
             this.btnResetZoom.Size = new System.Drawing.Size(83, 23);
             this.btnResetZoom.TabIndex = 15;
@@ -175,7 +189,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(9, 328);
+            this.btnSave.Location = new System.Drawing.Point(9, 316);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(83, 23);
             this.btnSave.TabIndex = 14;
@@ -185,7 +199,7 @@
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(9, 299);
+            this.btnLoad.Location = new System.Drawing.Point(9, 287);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(83, 23);
             this.btnLoad.TabIndex = 13;
@@ -200,7 +214,7 @@
             this.txtValueUnderMouse.BackColor = System.Drawing.Color.Navy;
             this.txtValueUnderMouse.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtValueUnderMouse.ForeColor = System.Drawing.Color.Yellow;
-            this.txtValueUnderMouse.Location = new System.Drawing.Point(9, 268);
+            this.txtValueUnderMouse.Location = new System.Drawing.Point(9, 256);
             this.txtValueUnderMouse.Name = "txtValueUnderMouse";
             this.txtValueUnderMouse.Size = new System.Drawing.Size(259, 13);
             this.txtValueUnderMouse.TabIndex = 12;
@@ -230,7 +244,7 @@
             this.txtBounds.BackColor = System.Drawing.Color.Navy;
             this.txtBounds.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtBounds.ForeColor = System.Drawing.Color.Yellow;
-            this.txtBounds.Location = new System.Drawing.Point(9, 230);
+            this.txtBounds.Location = new System.Drawing.Point(9, 218);
             this.txtBounds.Name = "txtBounds";
             this.txtBounds.Size = new System.Drawing.Size(259, 13);
             this.txtBounds.TabIndex = 9;
@@ -242,7 +256,7 @@
             this.txtYMax.BackColor = System.Drawing.Color.Navy;
             this.txtYMax.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtYMax.ForeColor = System.Drawing.Color.Yellow;
-            this.txtYMax.Location = new System.Drawing.Point(9, 211);
+            this.txtYMax.Location = new System.Drawing.Point(9, 199);
             this.txtYMax.Name = "txtYMax";
             this.txtYMax.Size = new System.Drawing.Size(259, 13);
             this.txtYMax.TabIndex = 8;
@@ -255,7 +269,7 @@
             this.txtYMin.BackColor = System.Drawing.Color.Navy;
             this.txtYMin.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtYMin.ForeColor = System.Drawing.Color.Yellow;
-            this.txtYMin.Location = new System.Drawing.Point(9, 192);
+            this.txtYMin.Location = new System.Drawing.Point(9, 180);
             this.txtYMin.Name = "txtYMin";
             this.txtYMin.Size = new System.Drawing.Size(259, 13);
             this.txtYMin.TabIndex = 7;
@@ -267,7 +281,7 @@
             this.txtXMax.BackColor = System.Drawing.Color.Navy;
             this.txtXMax.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtXMax.ForeColor = System.Drawing.Color.Yellow;
-            this.txtXMax.Location = new System.Drawing.Point(9, 173);
+            this.txtXMax.Location = new System.Drawing.Point(9, 161);
             this.txtXMax.Name = "txtXMax";
             this.txtXMax.Size = new System.Drawing.Size(259, 13);
             this.txtXMax.TabIndex = 6;
@@ -279,7 +293,7 @@
             this.txtXMin.BackColor = System.Drawing.Color.Navy;
             this.txtXMin.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtXMin.ForeColor = System.Drawing.Color.Yellow;
-            this.txtXMin.Location = new System.Drawing.Point(9, 154);
+            this.txtXMin.Location = new System.Drawing.Point(9, 142);
             this.txtXMin.Name = "txtXMin";
             this.txtXMin.Size = new System.Drawing.Size(259, 13);
             this.txtXMin.TabIndex = 5;
@@ -290,7 +304,7 @@
             this.checkBox1.Checked = true;
             this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox1.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.checkBox1.Location = new System.Drawing.Point(9, 131);
+            this.checkBox1.Location = new System.Drawing.Point(9, 119);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(49, 17);
             this.checkBox1.TabIndex = 4;
@@ -302,11 +316,11 @@
             // 
             this.trackBarMaxIterations.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackBarMaxIterations.Location = new System.Drawing.Point(3, 82);
+            this.trackBarMaxIterations.Location = new System.Drawing.Point(9, 82);
             this.trackBarMaxIterations.Maximum = 16000;
             this.trackBarMaxIterations.Minimum = 1;
             this.trackBarMaxIterations.Name = "trackBarMaxIterations";
-            this.trackBarMaxIterations.Size = new System.Drawing.Size(232, 45);
+            this.trackBarMaxIterations.Size = new System.Drawing.Size(265, 45);
             this.trackBarMaxIterations.TabIndex = 3;
             this.trackBarMaxIterations.TickStyle = System.Windows.Forms.TickStyle.None;
             this.trackBarMaxIterations.Value = 1;
@@ -319,7 +333,7 @@
             this.txtMouseCoords.BackColor = System.Drawing.Color.Navy;
             this.txtMouseCoords.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtMouseCoords.ForeColor = System.Drawing.Color.Yellow;
-            this.txtMouseCoords.Location = new System.Drawing.Point(9, 249);
+            this.txtMouseCoords.Location = new System.Drawing.Point(9, 237);
             this.txtMouseCoords.Name = "txtMouseCoords";
             this.txtMouseCoords.Size = new System.Drawing.Size(259, 13);
             this.txtMouseCoords.TabIndex = 0;
@@ -343,17 +357,17 @@
             this.txtMaxIterations.Text = "1024";
             this.txtMaxIterations.TextChanged += new System.EventHandler(this.txtMaxIterations_TextChanged);
             // 
-            // linkLabel1
+            // listGPU
             // 
-            this.linkLabel1.AutoSize = true;
-            this.linkLabel1.LinkColor = System.Drawing.Color.Red;
-            this.linkLabel1.Location = new System.Drawing.Point(13, 434);
-            this.linkLabel1.Name = "linkLabel1";
-            this.linkLabel1.Size = new System.Drawing.Size(179, 13);
-            this.linkLabel1.TabIndex = 20;
-            this.linkLabel1.TabStop = true;
-            this.linkLabel1.Text = "https://github.com/genrege/Mandel";
-            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            this.listGPU.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.listGPU.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.listGPU.FormattingEnabled = true;
+            this.listGPU.Location = new System.Drawing.Point(71, 117);
+            this.listGPU.Name = "listGPU";
+            this.listGPU.Size = new System.Drawing.Size(197, 21);
+            this.listGPU.TabIndex = 21;
+            this.listGPU.SelectedIndexChanged += new System.EventHandler(this.listGPU_SelectedIndexChanged);
             // 
             // MainForm
             // 
@@ -403,6 +417,7 @@
         private System.Windows.Forms.NumericUpDown upDown1;
         private System.Windows.Forms.Button btnResetJulia;
         private System.Windows.Forms.LinkLabel linkLabel1;
+        private System.Windows.Forms.ComboBox listGPU;
     }
 }
 

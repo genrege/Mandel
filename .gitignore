@@ -107,3 +107,10 @@
 /MandelbrotRenderer/x64/Debug/Mandelbr.8fd82e77.tlog/link.15620.delete.1.tlog
 /x64/Release/MandelbrotViewer.exe.config
 /x64/Debug/MandelbrotViewer.exe.config
+/MandelbrotViewer/obj/x64/Debug
+/MandelbrotViewer/obj/x64/Release/MandelbrotViewer.csproj.AssemblyReference.cache
+*.cache
+*.tlog
+/.vs/MandelAmp/v17/Current
+/MandelbrotRenderer/x64/Debug
+/MandelbrotRenderer/x64/Release
