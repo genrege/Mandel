@@ -11,7 +11,7 @@ Basic instructions:
 - Mouse wheel zooms in/oput around the cursor
 - Left click pans the image
 - Some sets appear to work better with a lower number of iterations eg Julia - this may be a palette limitation, to be addressed
-- For large numbers of iterations, see the Window TDR item before for configuration
+- For large numbers of iterations, see the Window TDR item below for configuration
 
 Limitations/TODO:
 - Uses Microsoft C++ AMP for GPU compute.  With VS 2022, this now builds and runs in Debug x64.
