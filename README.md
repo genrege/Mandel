@@ -1,6 +1,9 @@
 # Mandel
 Mandelbrot/Julia and related fractal interactive rendering.
 
+Build:
+- Builds with VS 2022, C++ 143 toolset and .Net 4.7.2
+
 Basic instructions:
 - Select the set to render from the dropdown
 - Some sets have an additional coordinate - specify using Ctrl+Click in ther overview or main panels
