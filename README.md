@@ -33,6 +33,6 @@ Future functionality:
 
 Hardware/OS:
 - GPU: tested on AMD Radeon VII, NVidia 2070 Super and NVidia 1660 Super
-- CPU: AMD 3900X, AMD 3600X
+- CPU: AMD 3900X, AMD 3600X, AMD 5950X
 - Windows 10
 
