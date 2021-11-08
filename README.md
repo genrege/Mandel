@@ -14,7 +14,7 @@ Basic instructions:
 - For large numbers of iterations, see the Window TDR item before for configuration
 
 Limitations/TODO:
-- Uses Microsoft C++ AMP for GPU compute.  This only works in Release mode and appears to be a Microsoft bug.
+- Uses Microsoft C++ AMP for GPU compute.  With VS 2022, this now builds and runs in Debug x64.
 - To be ported to OpenCL, work in progress
 - Numeric limits of FP64 - fixed/arbitrary precision needed for deeper zooms
 - C# UI improvements needed, especially some interactive palette selection - these are hardcoded right now
