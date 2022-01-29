@@ -1,6 +1,9 @@
 # Mandel
 Mandelbrot/Julia and related fractal interactive rendering.
 
+Build:
+- Builds with VS 2022, C++ 143 toolset and .Net 4.7.2
+
 Basic instructions:
 - Select the set to render from the dropdown
 - Some sets have an additional coordinate - specify using Ctrl+Click in ther overview or main panels
@@ -8,10 +11,10 @@ Basic instructions:
 - Mouse wheel zooms in/oput around the cursor
 - Left click pans the image
 - Some sets appear to work better with a lower number of iterations eg Julia - this may be a palette limitation, to be addressed
-- For large numbers of iterations, see the Window TDR item before for configuration
+- For large numbers of iterations, see the Window TDR item below for configuration
 
 Limitations/TODO:
-- Uses Microsoft C++ AMP for GPU compute.  This only works in Release mode and appears to be a Microsoft bug.
+- Uses Microsoft C++ AMP for GPU compute.  With VS 2022, this now builds and runs in Debug x64.
 - To be ported to OpenCL, work in progress
 - Numeric limits of FP64 - fixed/arbitrary precision needed for deeper zooms
 - C# UI improvements needed, especially some interactive palette selection - these are hardcoded right now
@@ -30,6 +33,6 @@ Future functionality:
 
 Hardware/OS:
 - GPU: tested on AMD Radeon VII, NVidia 2070 Super and NVidia 1660 Super
-- CPU: AMD 3900X, AMD 3600X
+- CPU: AMD 3900X, AMD 3600X, AMD 5950X
 - Windows 10
 
