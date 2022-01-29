@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Xml.Schema;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MandelbrotViewer
 {
@@ -46,14 +47,20 @@ namespace MandelbrotViewer
             string[] gpus = new string[100];
             MandelbrotDLLInterface.GPU(ref gpus);
 
+            int bestGPU = 0;
             foreach (var gpu in gpus)
             {
-                listGPU.Items.Add(gpu);
+                if (gpu != "CPU accelerator")
+                    listGPU.Items.Add(gpu);
+                if (gpu.Contains("AMD"))
+                    bestGPU = listGPU.Items.Count - 1;
             }
-            listGPU.SelectedIndex = 0;
+            listGPU.SelectedIndex = bestGPU;
 
             sliderMax.Text = "6000";
             txtMaxIterations.Text = "100";
+            txtMaxIterations.Minimum = 1;
+            txtMaxIterations.Maximum = 6000;
             upDown1.Value = 0;
             upDown1.Minimum = 0;
             upDown1.Maximum = 19;
@@ -157,6 +164,7 @@ namespace MandelbrotViewer
                 {
                     trackBarMaxIterations.Maximum = maxSlider;
                     txtMaxIterations.Text = maxSlider.ToString();
+                    txtMaxIterations.Maximum = maxSlider;
                 }
                 else
                 {
@@ -174,6 +182,7 @@ namespace MandelbrotViewer
                 {
                     trackBarMaxIterations.Minimum = minSlider;
                     txtMaxIterations.Text = minSlider.ToString();
+                    txtMaxIterations.Minimum = minSlider;
                 }
                 else
                 {
@@ -194,9 +203,9 @@ namespace MandelbrotViewer
 
         private void btnReset_Click(object sender, EventArgs e)
         {
-            renderPanel.coordinateSpace().XMin = -2.5;
-            renderPanel.coordinateSpace().YMin = -2.0;
-            renderPanel.coordinateSpace().YMax = 2.0;
+            renderPanel.Coord.XMin = -2.5;
+            renderPanel.Coord.YMin = -2.0;
+            renderPanel.Coord.YMax = 2.0;
             renderPanel.Invalidate();
         }
 
@@ -227,7 +236,7 @@ namespace MandelbrotViewer
                 if (saveBmpDialog.FilterIndex > 6)
                     factor = 50;
 
-                var localCoord = renderPanel.coordinateSpace();
+                var localCoord = renderPanel.Coord;
                 Int64 wx = localCoord.ScreenWidth * factor;
                 Int64 wy = localCoord.ScreenHeight * factor;
                 for (;;)
@@ -240,7 +249,7 @@ namespace MandelbrotViewer
 
                 }
 
-                var extCoord = renderPanel.coordinateSpace().DeepCopy();
+                var extCoord = renderPanel.Coord.DeepCopy();
                 extCoord.ScreenWidth = (int)wx;
                 extCoord.ScreenHeight = (int)wy;
 
@@ -380,6 +389,109 @@ namespace MandelbrotViewer
             gpuIndex = listGPU.SelectedIndex;
             renderPanel.gpuIndex = gpuIndex;
             overviewPanel.gpuIndex = gpuIndex;
+            overviewPanel.Invalidate();
+            renderPanel.Invalidate();
+        }
+
+        private void btnRecord_Click(object sender, EventArgs e)
+        {
+            if (btnRecord.Text == "Record")
+            {
+                renderPanel.Record(true);
+                btnRecord.Text = "Stop";
+            }
+            else if (btnRecord.Text == "Stop")
+            {
+                renderPanel.Record(false);
+                btnRecord.Text = "Record";
+            }
+        }
+
+        int pos = 0;
+        private void btnReplay_Click(object sender, EventArgs e)
+        {
+            pos = 0;
+            if (btnReplay.Text == "Replay")
+                btnReplay.Text = "Stop";
+            else
+                btnReplay.Text = "Replay";
+        }
+
+        private void btnSaveRecording_Click(object sender, EventArgs e)
+        {
+            var dlg = new SaveFileDialog();
+            dlg.Filter = "Mandel Recorder file|*.mrc";
+            dlg.FileName = "fractal.mrc";
+            dlg.DefaultExt = "mrc";
+            dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                var output = new StringBuilder();
+                foreach (var rec in renderPanel.RecorderedItems)
+                {
+                    output.Append(rec.ToString());
+                }
+                System.IO.File.WriteAllText(dlg.FileName, output.ToString());
+            }
+        }
+
+        private void btnLoadRec_Click(object sender, EventArgs e)
+        {
+            var dlg = new OpenFileDialog();
+            dlg.Filter = "Mandel Recorder file|*.mrc";
+            dlg.FileName = "fractal.mrc";
+            dlg.DefaultExt = "mrc";
+            dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+
+                renderPanel.RecorderedItems = new List<RenderPanel.RecordingItem>();
+
+                var lines = System.IO.File.ReadAllLines(dlg.FileName);
+                for (int i = 0; i < lines.Length; i += 2)
+                {
+                    var recItem = RenderPanel.RecordingItem.FromString(lines[i], lines[i + 1]);
+                    renderPanel.RecorderedItems.Add(recItem);
+                }
+            }
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (btnReplay.Text == "Stop")
+            {
+                if (checkLoop.Checked)
+                {
+                    if (pos < 0)
+                        pos = 0;
+                    pos = renderPanel.Replay(pos);
+                    txtGeneral.Text = "Iteration " + pos.ToString();
+                    txtGeneral.Invalidate();
+                    renderPanel.Invalidate();
+                }
+                else
+                {
+                    if (pos < 0)
+                    {
+                        btnReplay.Text = "Replay";
+                        pos = 0;
+                    }
+                    else
+                    {
+                        pos = renderPanel.Replay(pos);
+                        txtGeneral.Text = "Iteration " + pos.ToString();
+                        txtGeneral.Invalidate();
+                        renderPanel.Invalidate();
+                    }
+                }
+            }
+        }
+
+        private void txtMaxIterations_ValueChanged(object sender, EventArgs e)
+        {
+            trackBarMaxIterations.Value = (int)txtMaxIterations.Value;
+            renderPanel.MaxIterations = trackBarMaxIterations.Value;
+            renderPanel.Invalidate();
         }
     }
 }

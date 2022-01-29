@@ -15,7 +15,7 @@ namespace MandelbrotViewer
             MandelbrotDLLInterface.GPU(ref gpus);
         }
 
-        public static void RenderBasic(IntPtr hdc, bool gpu, int gpuIndex, int maxIterations, CoordinateSpace cspace)
+        public static void RenderBasic(int gpuIndex, IntPtr hdc, bool gpu, int maxIterations, CoordinateSpace cspace)
         {
             MandelbrotDLLInterface.render(gpuIndex, hdc, gpu, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
         }
@@ -140,9 +140,9 @@ namespace MandelbrotViewer
             {
                 double s1 = (double)(i) * 1.0 / (double)max_iterations;
                 double s2 = (double)(i) * 2.0 / (double)max_iterations;
-                double s3 = (double)(i) * 3.0 / (double)max_iterations;
+                double s3 = (double)(i) * 4.0 / (double)max_iterations;
 
-                double f = Math.Abs(s1 - Math.Pow(s1 - 1, 8));
+                double f = Math.Abs(s1 - Math.Pow(s1 - 1, 6));
                 double g = Math.Abs(s2 - Math.Pow(s2 - 1, 4));
                 double h = Math.Abs(s3 - Math.Pow(s3 - 1, 2));
 
@@ -163,8 +163,8 @@ namespace MandelbrotViewer
                 double s3 = (double)(i) * 10.0 / (double)max_iterations;
 
                 double f = Math.Min(1, 10 * (1 - Math.Pow(s1 - 1, 2)));
-                double g = Math.Min(1, 10 * (1 - Math.Pow(s2 - 1, 2)));
-                double h = Math.Min(1, 10 * (1 - Math.Pow(s3 - 1, 10)));
+                double g = Math.Min(1, 10 * (1 - Math.Pow(s2 - 1, 4)));
+                double h = Math.Min(1, 10 * (1 - Math.Pow(s3 - 1, 6)));
 
                 palette[i] = ((int)(255.0 * f) << 16) | ((int)(255.0 * g) << 8) | (int)(255.0 * h);
             }

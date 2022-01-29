@@ -3,6 +3,7 @@
 #include <amp.h>
 #include <amp_math.h>
 #include <math.h>
+#include <omp.h>
 
 #include "Complex.h"
 
@@ -126,12 +127,12 @@ namespace MathsEx
             for (size_t i = 0; i < size; ++i)
             {
                 const double s1 = double(i * 3) * scale;
-                const double s2 = double(i) * scale;
-                const double s3 = double(i * 5 / 2) * scale;
+                const double s2 = double(i * 4) * scale;
+                const double s3 = double(i * 5) * scale;
 
                 const double f = min(1.0, (1 - pow(s1 - 1, 4)));
-                const double g = min(1.0, (1 - pow(s2 - 1, 3)));
-                const double h = min(1.0, (1 - pow(s3 - 1, 2)));
+                const double g = min(1.0, (1 - pow(s2 - 1, 2)));
+                const double h = min(1.0, (1 - pow(s3 - 1, 5)));
 
                 palette[i].r = char(255 * f);
                 palette[i].g = char(255 * g);
@@ -141,8 +142,10 @@ namespace MathsEx
 
         static void setPaletteJulia(size_t size, rgb* palette)
         {
+            const double scale = 1.0 / size;
             for (size_t i = 0; i < size; ++i)
             {
+                /*
                 const double s1 = double(i * 1) / size;
                 const double s2 = double(i / 2) / size;
                 const double s3 = double(i * 5 / 2) / size;
@@ -150,6 +153,14 @@ namespace MathsEx
                 const double f = min(1.0, (1 - pow(s1 - 1, 2)));
                 const double g = min(1.0, (1 - pow(s2 - 1, 4)));
                 const double h = min(1.0, (1 - pow(s3 - 1, 6)));
+                */
+                const double s1 = double(i * 3) * scale;
+                const double s2 = double(i * 4) * scale;
+                const double s3 = double(i * 5) * scale;
+
+                const double f = min(1.0, (1 - pow(s1 - 1, 2)));
+                const double g = min(1.0, (1 - pow(s2 - 1, 2)));
+                const double h = min(1.0, (1 - pow(s3 - 1, 2)));
 
                 palette[i].r = char(255 * f);
                 palette[i].g = char(255 * g);
@@ -187,6 +198,8 @@ namespace MathsEx
 
         static void cpuMandelbrotKernel(unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
+            omp_set_num_threads(1);
+
             const int num_points = display_w * display_h;
 
             const auto set_width  = x1 - x0;

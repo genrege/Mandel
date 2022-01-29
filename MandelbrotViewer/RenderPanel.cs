@@ -20,20 +20,11 @@ namespace MandelbrotViewer
         public event EventHandler StatusChange;
         public event EventHandler PositionChange;
 
-        public RenderPanel()
-        {
-            InitializeComponent();
-            MaxIterations = 1024;
-            this.MouseWheel += RenderPanel_OnMouseWheel;
-            coord_ = new CoordinateSpace(Width, Height, -3.0, -2.0, 2.0);
-            coord_.Align(-1.0, 0.0, Width / 2, Height / 2);
-        }
-
-        CoordinateSpace coord_ = null;
+        public CoordinateSpace Coord { get; set; }
 
         public int gpuIndex { get; set; }
-        public double MouseDownSetX {get; set;}
-        public double MouseDownSetY { get; set;}
+        public double MouseDownSetX { get; set; }
+        public double MouseDownSetY { get; set; }
         public double CurrentSetX { get; set; }
         public double CurrentSetY { get; set; }
         public double JuliaSetX { get; set; }
@@ -42,15 +33,91 @@ namespace MandelbrotViewer
 
         public int MaxIterations { get; set; }
         public int FractalSetIndex { get; set; }
+        public Point LastMouseMoveLocation { get; set; }
+
 
         public bool useGpu { get; set; }
         int[] palette_ = null;
         int[] calculation_data_ = null;
         int[] bitmap_ = null;
 
-        public CoordinateSpace coordinateSpace()
+        public class RecordingItem
         {
-            return coord_;
+            public CoordinateSpace Coord { get; set; }
+            public bool useGPU { get; set; }
+            public int gpuIndex { get; set; }
+            public double MouseDownSetX { get; set; }
+            public double MouseDownSetY { get; set; }
+            public double CurrentSetX { get; set; }
+            public double CurrentSetY { get; set; }
+            public double JuliaSetX { get; set; }
+            public double JuliaSetY { get; set; }
+            public int SpecialFunc { get; set; }
+
+            public int MaxIterations { get; set; }
+            public int FractalSetIndex { get; set; }
+            public Point LastMouseMoveLocation { get; set; }
+
+            public override string ToString()
+            {
+                var output = new StringBuilder();
+
+                output.AppendLine(Coord.ToString());
+
+                output.Append(gpuIndex).Append(",");
+                output.Append(MouseDownSetX).Append(",");
+                output.Append(MouseDownSetY).Append(",");
+                output.Append(CurrentSetX).Append(",");
+                output.Append(CurrentSetY).Append(",");
+                output.Append(JuliaSetY).Append(",");
+                output.Append(JuliaSetY).Append(",");
+                output.Append(SpecialFunc).Append(",");
+                output.Append(MaxIterations).Append(",");
+                output.Append(FractalSetIndex).Append(",");
+                output.Append(LastMouseMoveLocation.X).Append(",");
+                output.Append(LastMouseMoveLocation.Y).Append(",");
+                output.Append(useGPU);
+                output.AppendLine();
+
+                return output.ToString();
+            }
+
+            public static RecordingItem FromString(string coord_line, string line)
+            {
+                var r = new RecordingItem();
+
+                r.Coord = CoordinateSpace.FromString(coord_line);
+
+                var line_toks = line.Split(',');
+                if (line_toks.Length != 13)
+                    throw new SystemException("Failed to parse RecordingItem.FromString");
+
+                r.gpuIndex = int.Parse(line_toks[0]);
+                r.MouseDownSetX = double.Parse(line_toks[1]);
+                r.MouseDownSetY = double.Parse(line_toks[2]);
+                r.CurrentSetX = double.Parse(line_toks[3]);
+                r.CurrentSetY = double.Parse(line_toks[4]);
+                r.JuliaSetX = double.Parse(line_toks[5]);
+                r.JuliaSetY = double.Parse(line_toks[6]);
+                r.SpecialFunc = int.Parse(line_toks[7]);
+                r.MaxIterations = int.Parse(line_toks[8]);
+                r.FractalSetIndex = int.Parse(line_toks[9]);
+                r.LastMouseMoveLocation = new Point(int.Parse(line_toks[10]), int.Parse(line_toks[11]));
+                r.useGPU = bool.Parse(line_toks[12]);
+
+                return r;
+            }
+        }
+
+        public RenderPanel()
+        {
+            InitializeComponent();
+            MaxIterations = 1024;
+            this.MouseWheel += RenderPanel_OnMouseWheel;
+            Coord = new CoordinateSpace(Width, Height, -3.0, -2.0, 2.0);
+            Coord.Align(-1.0, 0.0, Width / 2, Height / 2);
+
+            Recording = false;
         }
 
         protected override void OnPaintBackground(PaintEventArgs e)
@@ -72,8 +139,8 @@ namespace MandelbrotViewer
 
         private void RenderPanel_Resize(object sender, EventArgs e)
         {
-            coord_.ScreenWidth = Width;
-            coord_.ScreenHeight = Height;
+            Coord.ScreenWidth = Width;
+            Coord.ScreenHeight = Height;
             Invalidate();
 
             calculation_data_ = new int[Width * Height];
@@ -86,21 +153,20 @@ namespace MandelbrotViewer
             {
                 Capture = true;
 
-                var cc = coord_.SetFromScreen(e.Location.X, e.Location.Y);
+                var cc = Coord.SetFromScreen(e.Location.X, e.Location.Y);
 
                 MouseDownSetX = cc.X;
                 MouseDownSetY = cc.Y;
             }
         }
 
-        Point lastMouseMoveLocation = Point.Empty;
         private void RenderPanel_MouseMove(object sender, MouseEventArgs e)
         {
-            if (e.Location == lastMouseMoveLocation)
+            if (e.Location == LastMouseMoveLocation)
                 return;
-            lastMouseMoveLocation = e.Location;
+            LastMouseMoveLocation = e.Location;
 
-            var cc = coord_.SetFromScreen(e.Location.X, e.Location.Y);
+            var cc = Coord.SetFromScreen(e.Location.X, e.Location.Y);
             CurrentSetX = cc.X;
             CurrentSetY = cc.Y;
 
@@ -113,12 +179,11 @@ namespace MandelbrotViewer
                 double nx = MouseDownSetX - CurrentSetX;
                 double ny = MouseDownSetY - CurrentSetY;
 
-                coord_.ShiftSpace(nx, ny);
+                Coord.ShiftSpace(nx, ny);
 
                 EventHandler handler1 = PositionChange;
                 if (handler1 != null)
-                    handler1.Invoke(this, new SetScaleInfo(cc.X, cc.Y, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax));
-
+                    handler1.Invoke(this, new SetScaleInfo(cc.X, cc.Y, Coord.XMin, Coord.XMax, Coord.YMin, Coord.YMax));
                 Render();
 
             }
@@ -132,50 +197,55 @@ namespace MandelbrotViewer
 
         public void CentreOn(double px, double py)
         {
-            coord_.Align(px, py, Width / 2, Height / 2);
+            Coord.Align(px, py, Width / 2, Height / 2);
 
             Render();
 
             EventHandler handler1 = PositionChange;
             if (handler1 != null)
             {
-                var cc = coord_.SetFromScreen(Location.X, Location.Y);
+                var cc = Coord.SetFromScreen(Location.X, Location.Y);
 
-                handler1.Invoke(this, new SetScaleInfo(cc.X, cc.Y, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax));
+                handler1.Invoke(this, new SetScaleInfo(cc.X, cc.Y, Coord.XMin, Coord.XMax, Coord.YMin, Coord.YMax));
             }
         }
 
         private void Zoom(double ratio, double px, double py)
         {
-            double wx = coord_.XMax - coord_.XMin;
-            double wy = coord_.YMax - coord_.YMin;
+            double wx = Coord.XMax - Coord.XMin;
+            double wy = Coord.YMax - Coord.YMin;
 
-            coord_.XMin = -ratio * (px - coord_.XMin) + px;
-            coord_.YMin = -ratio * (py - coord_.YMin) + py;
-            coord_.YMax = coord_.YMin + wy * ratio;
+            Coord.XMin = -ratio * (px - Coord.XMin) + px;
+            Coord.YMin = -ratio * (py - Coord.YMin) + py;
+            Coord.YMax = Coord.YMin + wy * ratio;
         }
 
-        private void RenderPanel_OnMouseWheel(object sender, MouseEventArgs e)
+        private void DoZoom(bool into, double px, double py, double factor)
         {
-            var cc = coord_.SetFromScreen(e.Location.X, e.Location.Y);
-            double px = cc.X;
-            double py = cc.Y;
-
-            if (e.Delta > 0)
-            {
-                Zoom(1 / 1.1, px, py);
-            }
+            if (into)
+                Zoom(1.0 / factor, px, py);
             else
-            {
-                Zoom(1.1, px, py);
-            }
+                Zoom(factor, px, py);
 
             Render();
 
             EventHandler handler1 = PositionChange;
             if (handler1 != null)
-                handler1.Invoke(this, new SetScaleInfo(cc.X, cc.Y, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax));
+                handler1.Invoke(this, new SetScaleInfo(px, py, Coord.XMin, Coord.XMax, Coord.YMin, Coord.YMax));
+        }
 
+        private void RenderPanel_OnMouseWheel(object sender, MouseEventArgs e)
+        {
+            var cc = Coord.SetFromScreen(e.Location.X, e.Location.Y);
+            double px = cc.X;
+            double py = cc.Y;
+
+            var factor = Control.ModifierKeys == Keys.Control ? 2.0 : 1.1;
+
+            if (Control.ModifierKeys == Keys.Shift)
+                factor = 1.01;
+
+            DoZoom(e.Delta > 0, px, py, factor);
         }
 
         private void Render()
@@ -186,61 +256,62 @@ namespace MandelbrotViewer
             switch (FractalSetIndex)
             {
                 case 0:
-                    MandelbrotAPI.RenderBasic(hdc, useGpu, gpuIndex, MaxIterations, coord_);
+                    MandelbrotAPI.RenderBasic(gpuIndex, hdc, useGpu, MaxIterations, Coord);
                     break;
                 case 1:
-                    MandelbrotAPI.RenderJulia(gpuIndex, hdc, useGpu, MaxIterations, JuliaSetX, JuliaSetY, coord_);
+                    MandelbrotAPI.RenderJulia(gpuIndex, hdc, useGpu, MaxIterations, JuliaSetX, JuliaSetY, Coord);
                     break;
                 case 2:
-                    MandelbrotAPI.RenderBuddha(gpuIndex, hdc, MaxIterations, coord_);
+                    MandelbrotAPI.RenderBuddha(gpuIndex, hdc, MaxIterations, Coord);
                     break;
                 case 3:
-                    MandelbrotAPI.RenderAntiBuddha(gpuIndex, hdc, MaxIterations, coord_);
+                    MandelbrotAPI.RenderAntiBuddha(gpuIndex, hdc, MaxIterations, Coord);
                     break;
                 case 4:
                     {
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
-                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(gpuIndex, useGpu, MaxIterations, coord_);
+                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(gpuIndex, useGpu, MaxIterations, Coord);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
                 case 5:
                     {
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
-                        MandelbrotAPI.CalculateJulia2(gpuIndex, JuliaSetX, JuliaSetY, useGpu, MaxIterations, coord_, ref calculation_data_);
+                        MandelbrotAPI.CalculateJulia2(gpuIndex, JuliaSetX, JuliaSetY, useGpu, MaxIterations, Coord, ref calculation_data_);
                         MandelbrotAPI.PaletteTransform2(gpuIndex, calculation_data_, palette_, ref bitmap_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap_);
+                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap_);
                     }
                     break;
                 case 6:
                     {
                         palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
-                        var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, false, MaxIterations, coord_);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, false, MaxIterations, Coord);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
                 case 7:
                     {
                         palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
-                        var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, true, MaxIterations, coord_);
+                        var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, true, MaxIterations, Coord);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
                 case 8:
                     {
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
-                        var calculation_data = MandelbrotAPI.CalculateSpecial(gpuIndex, SpecialFunc, JuliaSetX, JuliaSetY, useGpu, MaxIterations, coord_);
+                        var calculation_data = MandelbrotAPI.CalculateSpecial(gpuIndex, SpecialFunc, JuliaSetX, JuliaSetY, useGpu, MaxIterations, Coord);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, coord_.ScreenWidth, coord_.ScreenHeight, bitmap);
+                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
             }
 
             gr.ReleaseHdc(hdc);
-            gr.Dispose();
+            //gr.Dispose();
+            CaptureRecording();
         }
 
         private void RenderPanel_Paint(object sender, PaintEventArgs e)
@@ -253,10 +324,83 @@ namespace MandelbrotViewer
             EventHandler handler1 = PositionChange;
             if (handler1 != null)
             {
-                var cc = coord_.SetFromScreen(Location.X, Location.Y);
-
-                handler1.Invoke(this, new SetScaleInfo(cc.X, cc.Y, coord_.XMin, coord_.XMax, coord_.YMin, coord_.YMax));
+                var cc = Coord.SetFromScreen(Location.X, Location.Y);
+                handler1.Invoke(this, new SetScaleInfo(cc.X, cc.Y, Coord.XMin, Coord.XMax, Coord.YMin, Coord.YMax));
             }
+        }
+
+        public bool Recording {  get; private set; }
+        
+
+        public List<RecordingItem> RecorderedItems = null;
+
+        void CaptureRecording()
+        {
+            if (Recording)
+            {
+                RecordingItem item = new RecordingItem();
+
+                item.Coord = Coord.DeepCopy();
+                item.MouseDownSetX = MouseDownSetX;
+                item.MouseDownSetY = MouseDownSetY;
+                item.CurrentSetX = CurrentSetX;
+                item.CurrentSetY = CurrentSetY;
+                item.JuliaSetX = JuliaSetX;
+                item.JuliaSetY = JuliaSetY;
+                item.SpecialFunc = SpecialFunc;
+                item.MaxIterations = MaxIterations; 
+                item.FractalSetIndex = FractalSetIndex;
+                item.LastMouseMoveLocation = LastMouseMoveLocation;
+                item.useGPU = useGpu;
+                item.gpuIndex = gpuIndex;
+
+                RecorderedItems.Add(item);
+            }
+        }
+
+
+        public void Record(bool record)
+        {
+            Recording = record;
+
+            if (Recording)
+            {
+                RecorderedItems = new List<RecordingItem>();
+                CaptureRecording();
+            }
+            else
+            {
+                //todo
+            }
+        }
+
+        public int Replay(int pos)
+        {
+            if (RecorderedItems != null  && pos < RecorderedItems.Count)
+            {
+                var item = RecorderedItems[pos];
+
+                Coord = item.Coord;
+                Coord.ScreenWidth = Width;
+                Coord.ScreenHeight = Height;
+
+                MouseDownSetX = item.MouseDownSetX;
+                MouseDownSetY = item.MouseDownSetY;
+                CurrentSetX = item.CurrentSetX;
+                CurrentSetY = item.CurrentSetY;
+                JuliaSetX = item.JuliaSetX;
+                JuliaSetY = item.JuliaSetY;
+                SpecialFunc = item.SpecialFunc;
+                MaxIterations = item.MaxIterations;
+                FractalSetIndex = item.FractalSetIndex;
+                LastMouseMoveLocation = item.LastMouseMoveLocation;
+                useGpu = item.useGPU;
+                gpuIndex = item.gpuIndex;
+
+                Coord.UpdateState();
+                return pos + 1;
+            }
+            return -1;
         }
     }
 

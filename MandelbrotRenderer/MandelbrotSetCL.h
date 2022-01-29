@@ -1,5 +1,5 @@
 #pragma once
-#if defined(USE_OPENCL) && defined(DEBUG_CL)
+#if defined(USE_OPENCL)
 #include <Cl/cl.h>
 
 #include <vector>

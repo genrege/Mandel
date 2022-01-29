@@ -12,7 +12,7 @@ using namespace MathsEx;
 namespace
 {
     //This fn from stackoverflow
-    PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
+    PBITMAPINFO CreateBitmapInfoStruct(HWND /*hwnd*/, HBITMAP hBmp)
     {
         BITMAP bmp;
         PBITMAPINFO pbmi;
@@ -40,15 +40,9 @@ namespace
 
         const auto mag = 1 << cClrBits;
         if (cClrBits < 24)
-            pbmi = (PBITMAPINFO)LocalAlloc(LPTR,
-                sizeof(BITMAPINFOHEADER) +
-                sizeof(RGBQUAD) * mag);
-
-        // There is no RGBQUAD array for these formats: 24-bit-per-pixel or 32-bit-per-pixel 
-
+            pbmi = (PBITMAPINFO)LocalAlloc(LPTR, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * mag);
         else
-            pbmi = (PBITMAPINFO)LocalAlloc(LPTR,
-                sizeof(BITMAPINFOHEADER));
+            pbmi = (PBITMAPINFO)LocalAlloc(LPTR, sizeof(BITMAPINFOHEADER));
 
         // Initialize the fields in the BITMAPINFO structure.  
 
@@ -67,8 +61,8 @@ namespace
         // indices and store the result in biSizeImage.  
         // The width must be DWORD aligned unless the bitmap is RLE 
         // compressed. 
-        pbmi->bmiHeader.biSizeImage = ((pbmi->bmiHeader.biWidth * cClrBits + 31) & ~31) / 8
-            * pbmi->bmiHeader.biHeight;
+        pbmi->bmiHeader.biSizeImage = ((pbmi->bmiHeader.biWidth * cClrBits + 31) & ~31) / 8 * pbmi->bmiHeader.biHeight;
+        
         // Set biClrImportant to 0, indicating that all of the  
         // device colors are important.  
         pbmi->bmiHeader.biClrImportant = 0;
@@ -138,7 +132,7 @@ namespace
     {
         std::vector<BYTE> buf;
         IStream* stream = NULL;
-        HRESULT hr = CreateStreamOnHGlobal(0, TRUE, &stream);
+        CreateStreamOnHGlobal(0, TRUE, &stream);
         CImage image;
         ULARGE_INTEGER liSize;
 
@@ -159,7 +153,7 @@ namespace
         }
     }
 
-    BITMAPINFOHEADER createBitmapInfoHeader(unsigned width, unsigned height, WORD bit_count)
+    BITMAPINFOHEADER createBitmapInfoHeader(unsigned width, unsigned height, WORD /*bit_count*/)
     {
         BITMAPINFOHEADER   bi;
 
@@ -401,8 +395,6 @@ extern "C" DLL_API void calculateJulia(int gpuIndex, double re, double im, bool 
 //  Managed client API to calculate the Julia set data only
 extern "C" DLL_API void calculateJulia2(int gpuIndex, double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
-    const unsigned array_size = width * height;
-
     unsigned* result;
     SafeArrayLock(*ppsa);
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
@@ -496,7 +488,6 @@ extern "C" void paletteTransform(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pale
 extern "C" void renderArrayToDevice(HDC hdc, int width, int height, SAFEARRAY* input)
 {
     SafeArrayLock(input);
-    unsigned array_size = input->rgsabound->cElements;
     unsigned* input_data;
     SafeArrayAccessData(input, (void HUGEP**) & input_data);
 
@@ -540,7 +531,6 @@ extern "C" void paletteTransform2(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pal
 extern "C" void renderArrayToBitmap(HDC hdc, int width, int height, SAFEARRAY * input, const char* filename)
 {
     SafeArrayLock(input);
-    unsigned array_size = input->rgsabound->cElements;
     unsigned* input_data;
     SafeArrayAccessData(input, (void HUGEP**) & input_data);
 
@@ -554,7 +544,6 @@ extern "C" void renderArrayToBitmap(HDC hdc, int width, int height, SAFEARRAY * 
 extern "C" void renderArrayToJPEG(HDC hdc, int width, int height, SAFEARRAY * input, const char* filename)
 {
     SafeArrayLock(input);
-    unsigned array_size = input->rgsabound->cElements;
     unsigned* input_data;
     SafeArrayAccessData(input, (void HUGEP**) & input_data);
 

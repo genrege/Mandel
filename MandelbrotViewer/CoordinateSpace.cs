@@ -22,7 +22,37 @@ namespace MandelbrotViewer
             ymax_ = yMax;
         }
 
-        private void UpdateState()
+        public override string ToString()
+        {
+            var output = new StringBuilder();
+
+            output.Append(screen_width_).Append(",");
+            output.Append(screen_height_).Append(",");
+            output.Append(xmin_).Append(",");
+            output.Append(ymin_).Append(",");
+            output.Append(ymax_);
+
+            return output.ToString();
+        }
+
+        public static CoordinateSpace FromString(string input)
+        {
+            var toks = input.Split(',');
+            if (toks.Length != 5)
+                throw new SystemException("Failed to parse CoordinateSpace.FromString");
+
+            var cs = new CoordinateSpace(
+                int.Parse(toks[0]),
+                int.Parse(toks[1]),
+                double.Parse(toks[2]),
+                double.Parse(toks[3]),
+                double.Parse(toks[4])
+                );
+            cs.UpdateState();
+            return cs;
+        }
+
+        public void UpdateState()
         {
             AspectRatio = (double)screen_width_ / (double)screen_height_;
             xmax_ = xmin_ + AspectRatio * (ymax_ - ymin_);
