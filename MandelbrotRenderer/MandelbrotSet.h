@@ -6,6 +6,10 @@
 #include <omp.h>
 
 #include "Complex.h"
+#include "cached_memory.h"
+
+
+#include "../MandelbrotRendererCUDA/MandelbrotSetCUDA.h"
 
 #pragma warning (disable: 4996)
 
@@ -29,177 +33,187 @@ namespace MathsEx
 
         typedef RealType FloatingPointType;
 
-        const unsigned* data() const { return m_arr; }
-        const unsigned* bmp() const { return m_bmp; }
+        const unsigned* palette() const { return m_palette; }
+        const unsigned* bmp() const { return (unsigned*)m_bmp.access(); }
         const unsigned data_size() const { return m_wx * m_wy; }
 
-        MandelbrotSet() : m_x0(0), m_x1(0), m_xstep(0), m_y0(0), m_y1(0), m_ystep(0), m_wx(0), m_wy(0), m_arr(nullptr), m_bmp(nullptr), m_density(nullptr)
+        MandelbrotSet() : m_x0(0), m_x1(0), m_y0(0), m_y1(0), m_wx(0), m_wy(0)
         {
         }
 
         ~MandelbrotSet()
         {
-            delete[] m_arr;
-            delete[] m_bmp;
-            delete[] m_density;
         }
 
         void SetScale(RealType x0, RealType x1, RealType y0, RealType y1, unsigned wx, unsigned wy) restrict(cpu)
         {
             m_x0 = x0;
             m_x1 = x1;
-            m_xstep = (x1 - x0) / (wx - 1);
 
             m_y0 = y0;
             m_y1 = y1;
-            m_ystep = (y1 - y0) / (wy - 1);
 
             //Allocate AMP input/output structures
-            if (m_wx != wx || m_wy != wy || m_arr == nullptr || m_bmp == nullptr || m_density == nullptr)
+            if (m_wx != wx || m_wy != wy)
             {
-                delete[] m_arr;
-                delete[] m_bmp;
-                delete[] m_density;
 
                 m_wx = wx;
                 m_wy = wy;
 
-                m_arr = new unsigned[m_wx * m_wy];
-                m_bmp = new unsigned[m_wx * m_wy];
-                m_density = new unsigned[m_wx * m_wy];
+                m_bmp.reserve(m_wx * m_wy);
+                m_density.reserve(m_wx * m_wy);
             }
         }
 
         void CalculateSetCPU(const accelerator_view& v, const unsigned maxIters) restrict(cpu)
         {
+            m_arr.reserve(m_wx * m_wy);
             cpuMandelbrotKernel(m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
-            rgb* palette = new rgb[maxIters];
-            setPalette(maxIters, palette);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
-            delete[] palette;
+            setPalette(1 + maxIters);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
         }
 
-        //Uses AMP to calculate the entire set over the space (m_x0, m_x1)-(m_x1, m_y1) in steps (m_xstep, m_ystep)
         void CalculateSet(const accelerator_view& v, const unsigned maxIters) restrict(cpu)
         {
+            m_arr.reserve(m_wx * m_wy);
             gpuMandelbrotKernel(v, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
-            rgb* palette = new rgb[maxIters];
-            setPalette(maxIters, palette);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
-            delete[] palette;
+            setPalette(1 + maxIters);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
+        }
+
+        void CalculateSetCUDA(const accelerator_view& v, const unsigned maxIters) 
+        {
+                
+            auto* r = m_cuda.alloc_cuda(sizeof(unsigned int) * m_wx * m_wy);
+            m_cuda.render_mbrot(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy, maxIters, r);
+
+            setPalette(1 + maxIters);
+            gpuPaletteKernel(v, m_wx * m_wy, r, m_bmp, maxIters, m_palette);
+        }
+
+        void CalculateJuliaCUDA(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
+        {
+            auto* r = m_cuda.alloc_cuda(sizeof(unsigned int) * m_wx * m_wy);
+            m_cuda.render_julia(m_x0, m_x1, m_y0, m_y1, k.Re(), k.Im(), m_wx, m_wy, maxIters, r);
+
+            setPaletteJulia(1 + maxIters);
+            gpuPaletteKernel(v, m_wx * m_wy, r, m_bmp, maxIters, m_palette);
         }
 
         void CalculateBuddha(const accelerator_view& v, bool anti_buddha, const unsigned maxIters) restrict(cpu)
         {
             gpuCalculationDensity(v, anti_buddha, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_density);
 
-            rgb* palette = new rgb[maxIters];
-            setPaletteBuddha(maxIters, palette, m_density, m_wx * m_wy);
-            gpuPaletteKernel(v, m_wx * m_wy, m_density, m_bmp, maxIters, palette);
-            delete[] palette;
+            setPaletteBuddha(1 + maxIters, m_density, m_wx * m_wy);
+            gpuPaletteKernel(v, m_wx * m_wy, m_density, m_bmp, maxIters, m_palette);
         }
 
         void CalculateJulia(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
         {
+            m_arr.reserve(m_wx * m_wy);
             gpuJuliaKernel(v, k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
-            rgb* palette = new rgb[maxIters];
-            setPaletteJulia(maxIters, palette);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
-            delete[] palette;
+            setPaletteJulia(1 + maxIters);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
         }
 
         void CalculateJuliaCPU(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
         {
+            m_arr.reserve(m_wx * m_wy);
             cpuJuliaKernel(k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
-            rgb* palette = new rgb[maxIters];
-            setPaletteJulia(maxIters, palette);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, palette);
-            delete[] palette;
+            setPaletteJulia(1 + maxIters);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
         }
 
-        static void setPalette(size_t size, rgb* palette)
+        void setPalette(size_t size)
         {
-            const double scale = 1.0 / size;
-            for (size_t i = 0; i < size; ++i)
+            if (m_palette.reserve(size))
             {
-                const double s1 = double(i * 3) * scale;
-                const double s2 = double(i * 4) * scale;
-                const double s3 = double(i * 5) * scale;
+                const double scale = 1.0 / size;
+                for (size_t i = 0; i < size; ++i)
+                {
+                    const double s1 = double(i * 3) * scale;
+                    const double s2 = double(i * 4) * scale;
+                    const double s3 = double(i * 5) * scale;
 
-                const double f = min(1.0, (1 - pow(s1 - 1, 4)));
-                const double g = min(1.0, (1 - pow(s2 - 1, 2)));
-                const double h = min(1.0, (1 - pow(s3 - 1, 5)));
+                    const double f = min(1.0, (1 - pow(s1 - 1, 4)));
+                    const double g = min(1.0, (1 - pow(s2 - 1, 2)));
+                    const double h = min(1.0, (1 - pow(s3 - 1, 5)));
 
-                palette[i].r = char(255 * f);
-                palette[i].g = char(255 * g);
-                palette[i].b = char(255 * h);
+                    m_palette[i].r = char(255 * f);
+                    m_palette[i].g = char(255 * g);
+                    m_palette[i].b = char(255 * h);
+                }
             }
         }
 
-        static void setPaletteJulia(size_t size, rgb* palette)
+        void setPaletteJulia(size_t size)
         {
-            const double scale = 1.0 / size;
-            for (size_t i = 0; i < size; ++i)
+            if (m_palette.reserve(size))
             {
-                /*
-                const double s1 = double(i * 1) / size;
-                const double s2 = double(i / 2) / size;
-                const double s3 = double(i * 5 / 2) / size;
+                const double scale = 1.0 / size;
+                for (size_t i = 0; i < size; ++i)
+                {
+                    /*
+                    const double s1 = double(i * 1) / size;
+                    const double s2 = double(i / 2) / size;
+                    const double s3 = double(i * 5 / 2) / size;
 
-                const double f = min(1.0, (1 - pow(s1 - 1, 2)));
-                const double g = min(1.0, (1 - pow(s2 - 1, 4)));
-                const double h = min(1.0, (1 - pow(s3 - 1, 6)));
-                */
-                const double s1 = double(i * 3) * scale;
-                const double s2 = double(i * 4) * scale;
-                const double s3 = double(i * 5) * scale;
+                    const double f = min(1.0, (1 - pow(s1 - 1, 2)));
+                    const double g = min(1.0, (1 - pow(s2 - 1, 4)));
+                    const double h = min(1.0, (1 - pow(s3 - 1, 6)));
+                    */
+                    const double s1 = double(i * 3) * scale;
+                    const double s2 = double(i * 4) * scale;
+                    const double s3 = double(i * 5) * scale;
 
-                const double f = min(1.0, (1 - pow(s1 - 1, 2)));
-                const double g = min(1.0, (1 - pow(s2 - 1, 2)));
-                const double h = min(1.0, (1 - pow(s3 - 1, 2)));
+                    const double f = min(1.0, (1 - pow(s1 - 1, 2)));
+                    const double g = min(1.0, (1 - pow(s2 - 1, 2)));
+                    const double h = min(1.0, (1 - pow(s3 - 1, 2)));
 
-                palette[i].r = char(255 * f);
-                palette[i].g = char(255 * g);
-                palette[i].b = char(255 * h);
+                    m_palette[i].r = char(255 * f);
+                    m_palette[i].g = char(255 * g);
+                    m_palette[i].b = char(255 * h);
+                }
             }
         }
 
-        static void setPaletteBuddha(size_t palette_size, rgb* palette, unsigned* density, unsigned size_density)
+        void setPaletteBuddha(size_t size, unsigned* density, unsigned size_density)
         {
-            unsigned max_density = 0;
-            for (size_t i = 0; i < size_density; ++i)
-                if (density[i] > max_density) max_density = density[i];
-
-            const double palette_scale = 15.0 / double(max_density);
-
-            for (size_t i = 0; i < palette_size; ++i)
+            if (m_palette.reserve(size))
             {
-                ZeroMemory(&palette[i], sizeof(rgb));
-                
-                const double s1 = min(1.0, double(i) * palette_scale);
-                const double s2 = min(1.0, double(i) * palette_scale);
-                const double s3 = min(1.0, double(i) * palette_scale);
+                unsigned max_density = 0;
+                for (size_t i = 0; i < size_density; ++i)
+                    if (density[i] > max_density) max_density = density[i];
 
-                const double f = min(1.0, tanh(s2));
-                const double g = min(1.0, (1 - pow(s1 - 1, 2)));
-                const double h = min(1.0, (1 - pow(s3 - 1, 2)));
+                const double palette_scale = 15.0 / double(max_density);
 
-                palette[i].r = char(255 * f);
-                if (i > 16)
-                    palette[i].g = char(255 * g);
-                if (i > 24)
-                    palette[i].b = char(255 * h);
+                for (size_t i = 0; i < size; ++i)
+                {
+                    ZeroMemory(&m_palette[i], sizeof(rgb));
+
+                    const double s1 = min(1.0, double(i) * palette_scale);
+                    const double s2 = min(1.0, double(i) * palette_scale);
+                    const double s3 = min(1.0, double(i) * palette_scale);
+
+                    const double f = min(1.0, tanh(s2));
+                    const double g = min(1.0, (1 - pow(s1 - 1, 2)));
+                    const double h = min(1.0, (1 - pow(s3 - 1, 2)));
+
+                    m_palette[i].r = char(255 * f);
+                    if (i > 16)
+                        m_palette[i].g = char(255 * g);
+                    if (i > 24)
+                        m_palette[i].b = char(255 * h);
+                }
             }
         }
 
         static void cpuMandelbrotKernel(unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
-            omp_set_num_threads(1);
-
             const int num_points = display_w * display_h;
 
             const auto set_width  = x1 - x0;
@@ -251,6 +265,14 @@ namespace MathsEx
                 });
             mandelbrotResult.synchronize();
             mandelbrotResult.discard_data();
+        }
+
+        static void gpuMandelbrotKernelCUDA(unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        {
+            mbrot_cuda cuda;
+            auto* r = cuda.alloc_cuda(sizeof(unsigned int) * display_w * display_h);
+            cuda.render_mbrot(x0, x1, y0, y1, display_w, display_h, max_iter, r);
+            memcpy(iters, r, sizeof(unsigned int) * display_w * display_h);
         }
 
         static void cpuJuliaKernel(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
@@ -395,6 +417,14 @@ namespace MathsEx
             mandelbrotResult.discard_data();
         }
 
+        static void gpuJuliaKernelCUDA(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        {
+            mbrot_cuda cuda;
+            auto* r = cuda.alloc_cuda(sizeof(unsigned int) * display_w * display_h);
+            cuda.render_julia(x0, x1, y0, y1, k.Re(), k.Im(), display_w, display_h, max_iter, r);
+            memcpy(iters, r, sizeof(unsigned int) * display_w * display_h);
+        }
+
         //This function's a bit crap because gpu threads write concurrently to the map without any synchronisation, 
         //so rendering the same image twice will probably give slightly different maps each time.
         //Also, unless you fix the bounds of the set (ie real/imaginary bounds) and the calculation step between 
@@ -475,6 +505,13 @@ namespace MathsEx
                 });
         }
 
+        static void cpuPaletteKernel(unsigned size, unsigned* iters, unsigned* bmp, unsigned size_palette, rgb* palette)
+        {
+            #pragma omp parallel for
+            for (int i = 0; i < size; ++i)
+                bmp[i] = *((unsigned*)palette + iters[i]);
+        }
+
         //Calculation Mandelbrot set iterations
         inline static unsigned CalculatePoint(const Complex<RealType>& c, unsigned maxIters) restrict(amp, cpu)
         {
@@ -483,7 +520,7 @@ namespace MathsEx
             Complex<RealType> z(0.0, 0.0);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
-                z = z * z + c;
+                z = z.squared() + c;
                 ++iters;
             }
 
@@ -497,7 +534,7 @@ namespace MathsEx
             Complex<RealType> z = c;
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
-                z = z * z + k;
+                z = z.squared() + k;
                 ++iters;
             }
 
@@ -741,20 +778,23 @@ namespace MathsEx
         }
 
     private:
+        //Virtual dimensions
         RealType m_x0;
         RealType m_x1;
-        RealType m_xstep;
-
         RealType m_y0;
         RealType m_y1;
-        RealType m_ystep;
 
+        //Display dimensions
         unsigned m_wx;
         unsigned m_wy;
 
-        unsigned* m_arr;
-        unsigned* m_bmp;
-        unsigned* m_density;
+        //Runtime storage
+        cache_memory<rgb>       m_palette;
+        cache_memory<unsigned>  m_arr;
+        cache_memory<unsigned>  m_bmp;
+        cache_memory<unsigned>  m_density;
+
+        mbrot_cuda m_cuda;
     };
 }
 

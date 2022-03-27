@@ -53,7 +53,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;MANDELBROTRENDERER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);USE_OPENCL;_SILENCE_AMP_DEPRECATION_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MANDELBROTRENDERER_EXPORTS;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);USE_OPENCL;_SILENCE_AMP_DEPRECATION_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -66,8 +66,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(OCL_Root)/lib/x86_64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OCL_Root)/lib/x86_64;C:\git\Mandel\x64\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MandelbrotRendererCUDA.lib;opencl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -76,7 +76,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;MANDELBROTRENDERER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);USE_OPENCL;_SILENCE_AMP_DEPRECATION_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MANDELBROTRENDERER_EXPORTS;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);USE_OPENCL;_SILENCE_AMP_DEPRECATION_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -91,11 +91,12 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(OCL_Root)/lib/x86_64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CUDA_PATH)/lib/x64;$(OCL_Root)/lib/x86_64;C:/git/Mandel/x64/$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MandelbrotRendererCUDA.lib;opencl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cached_memory.h" />
     <ClInclude Include="Complex.h" />
     <ClInclude Include="MandelbrotSet.h" />
     <ClInclude Include="MandelbrotRendererAPI.h" />

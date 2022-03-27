@@ -56,6 +56,8 @@ namespace MathsEx
             return m_im;
         }
 
+
+
         inline Complex<RealType> Conjugate() const restrict(amp, cpu)
         {
             return Complex{ m_re, -m_im };
@@ -84,6 +86,11 @@ namespace MathsEx
         inline Complex<RealType> operator*(const Complex<RealType>& rhs) const restrict(amp, cpu)
         {
             return { m_re * rhs.m_re - m_im * rhs.m_im, m_im * rhs.m_re + m_re * rhs.m_im };
+        }
+
+        inline Complex<RealType> squared()  const restrict(amp, cpu)
+        {
+            return { m_re * m_re - m_im * m_im, 2 * m_re * m_im };
         }
 
         inline Complex<RealType> operator/(const Complex<RealType>& rhs) const restrict(amp, cpu)

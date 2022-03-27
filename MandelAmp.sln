@@ -1,11 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30503.244
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MandelbrotViewer", "MandelbrotViewer\MandelbrotViewer.csproj", "{81AF9C17-8C18-4A33-9483-FB96487E0B26}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MandelbrotRenderer", "MandelbrotRenderer\MandelbrotRenderer.vcxproj", "{8FD82E77-B551-4355-B6F1-0D3804C8CF3D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9CF47E32-D338-47D0-89DC-3E5D906D3948} = {9CF47E32-D338-47D0-89DC-3E5D906D3948}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MandelbrotRendererCUDA", "MandelbrotRendererCUDA\MandelbrotRendererCUDA.vcxproj", "{9CF47E32-D338-47D0-89DC-3E5D906D3948}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +26,10 @@ Global
 		{8FD82E77-B551-4355-B6F1-0D3804C8CF3D}.Debug|x64.Build.0 = Debug|x64
 		{8FD82E77-B551-4355-B6F1-0D3804C8CF3D}.Release|x64.ActiveCfg = Release|x64
 		{8FD82E77-B551-4355-B6F1-0D3804C8CF3D}.Release|x64.Build.0 = Release|x64
+		{9CF47E32-D338-47D0-89DC-3E5D906D3948}.Debug|x64.ActiveCfg = Debug|x64
+		{9CF47E32-D338-47D0-89DC-3E5D906D3948}.Debug|x64.Build.0 = Debug|x64
+		{9CF47E32-D338-47D0-89DC-3E5D906D3948}.Release|x64.ActiveCfg = Release|x64
+		{9CF47E32-D338-47D0-89DC-3E5D906D3948}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

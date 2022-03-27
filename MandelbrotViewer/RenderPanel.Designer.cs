@@ -36,6 +36,7 @@ namespace MandelbrotViewer
             // 
             this.Size = new System.Drawing.Size(400, 356);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.RenderPanel_Paint);
+            this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.RenderPanel_MouseDoubleClick);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RenderPanel_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.RenderPanel_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.RenderPanel_MouseUp);

@@ -37,6 +37,8 @@ namespace MandelbrotViewer
 
 
         public bool useGpu { get; set; }
+        public bool displayFPS { get; set; }
+        public bool useCUDA { get; set; }
         int[] palette_ = null;
         int[] calculation_data_ = null;
         int[] bitmap_ = null;
@@ -45,6 +47,7 @@ namespace MandelbrotViewer
         {
             public CoordinateSpace Coord { get; set; }
             public bool useGPU { get; set; }
+            public bool useCUDA { get; set; }
             public int gpuIndex { get; set; }
             public double MouseDownSetX { get; set; }
             public double MouseDownSetY { get; set; }
@@ -76,7 +79,8 @@ namespace MandelbrotViewer
                 output.Append(FractalSetIndex).Append(",");
                 output.Append(LastMouseMoveLocation.X).Append(",");
                 output.Append(LastMouseMoveLocation.Y).Append(",");
-                output.Append(useGPU);
+                output.Append(useGPU).Append(",");
+                output.Append(useCUDA).Append(",");
                 output.AppendLine();
 
                 return output.ToString();
@@ -89,7 +93,7 @@ namespace MandelbrotViewer
                 r.Coord = CoordinateSpace.FromString(coord_line);
 
                 var line_toks = line.Split(',');
-                if (line_toks.Length != 13)
+                if (line_toks.Length != 15)
                     throw new SystemException("Failed to parse RecordingItem.FromString");
 
                 r.gpuIndex = int.Parse(line_toks[0]);
@@ -104,6 +108,7 @@ namespace MandelbrotViewer
                 r.FractalSetIndex = int.Parse(line_toks[9]);
                 r.LastMouseMoveLocation = new Point(int.Parse(line_toks[10]), int.Parse(line_toks[11]));
                 r.useGPU = bool.Parse(line_toks[12]);
+                r.useCUDA = bool.Parse(line_toks[13]);
 
                 return r;
             }
@@ -116,7 +121,7 @@ namespace MandelbrotViewer
             this.MouseWheel += RenderPanel_OnMouseWheel;
             Coord = new CoordinateSpace(Width, Height, -3.0, -2.0, 2.0);
             Coord.Align(-1.0, 0.0, Width / 2, Height / 2);
-
+            displayFPS = true;
             Recording = false;
         }
 
@@ -253,13 +258,15 @@ namespace MandelbrotViewer
             var gr = CreateGraphics();
             var hdc = gr.GetHdc();
 
+            var clockStart = Environment.TickCount;
+
             switch (FractalSetIndex)
             {
                 case 0:
-                    MandelbrotAPI.RenderBasic(gpuIndex, hdc, useGpu, MaxIterations, Coord);
+                    MandelbrotAPI.RenderBasic(gpuIndex, hdc, useGpu, useCUDA, MaxIterations, Coord);
                     break;
                 case 1:
-                    MandelbrotAPI.RenderJulia(gpuIndex, hdc, useGpu, MaxIterations, JuliaSetX, JuliaSetY, Coord);
+                    MandelbrotAPI.RenderJulia(gpuIndex, hdc, useGpu, useCUDA, MaxIterations, JuliaSetX, JuliaSetY, Coord);
                     break;
                 case 2:
                     MandelbrotAPI.RenderBuddha(gpuIndex, hdc, MaxIterations, Coord);
@@ -270,7 +277,7 @@ namespace MandelbrotViewer
                 case 4:
                     {
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
-                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(gpuIndex, useGpu, MaxIterations, Coord);
+                        var calculation_data = MandelbrotAPI.CalculateMandelbrot(gpuIndex, useGpu, useCUDA, MaxIterations, Coord);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
@@ -309,7 +316,13 @@ namespace MandelbrotViewer
                     break;
             }
 
+            var clockStop = Environment.TickCount;
+
+            var frame_time_ms = clockStop - clockStart;
+
             gr.ReleaseHdc(hdc);
+            gr.DrawString(frame_time_ms.ToString() + " ms", DefaultFont, Brushes.LightGreen, 0, 0);
+
             //gr.Dispose();
             CaptureRecording();
         }
@@ -332,7 +345,7 @@ namespace MandelbrotViewer
         public bool Recording {  get; private set; }
         
 
-        public List<RecordingItem> RecorderedItems = null;
+        public List<RecordingItem> RecordedItems = null;
 
         void CaptureRecording()
         {
@@ -352,9 +365,10 @@ namespace MandelbrotViewer
                 item.FractalSetIndex = FractalSetIndex;
                 item.LastMouseMoveLocation = LastMouseMoveLocation;
                 item.useGPU = useGpu;
+                item.useCUDA = useCUDA;
                 item.gpuIndex = gpuIndex;
 
-                RecorderedItems.Add(item);
+                RecordedItems.Add(item);
             }
         }
 
@@ -365,7 +379,7 @@ namespace MandelbrotViewer
 
             if (Recording)
             {
-                RecorderedItems = new List<RecordingItem>();
+                RecordedItems = new List<RecordingItem>();
                 CaptureRecording();
             }
             else
@@ -376,9 +390,9 @@ namespace MandelbrotViewer
 
         public int Replay(int pos)
         {
-            if (RecorderedItems != null  && pos < RecorderedItems.Count)
+            if (RecordedItems != null  && pos < RecordedItems.Count)
             {
-                var item = RecorderedItems[pos];
+                var item = RecordedItems[pos];
 
                 Coord = item.Coord;
                 Coord.ScreenWidth = Width;
@@ -394,13 +408,44 @@ namespace MandelbrotViewer
                 MaxIterations = item.MaxIterations;
                 FractalSetIndex = item.FractalSetIndex;
                 LastMouseMoveLocation = item.LastMouseMoveLocation;
-                useGpu = item.useGPU;
-                gpuIndex = item.gpuIndex;
+                //useGpu = item.useGPU;
+                //gpuIndex = item.gpuIndex;
 
                 Coord.UpdateState();
                 return pos + 1;
             }
             return -1;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void RenderPanel_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            //Quick and dirty performance test, CUDA vs C++ AMP
+
+            var timer = new Stopwatch();
+            timer.Start();
+            for (int i = 0; i < 10; ++i)
+            {
+                MandelbrotAPI.CalculateMandelbrot(gpuIndex, true, false, MaxIterations, Coord);
+            }
+            timer.Stop();
+            var elapsedAMP = timer.ElapsedMilliseconds;
+
+            timer.Reset();
+            timer.Start();
+            for (int i = 0; i < 10; ++i)
+            {
+                MandelbrotAPI.CalculateMandelbrot(gpuIndex, true, true, MaxIterations, Coord);
+            }
+            timer.Stop();
+            var elapsedCuda = timer.ElapsedMilliseconds;
+
+            MessageBox.Show("C++ AMP: " + elapsedAMP.ToString() + "ms, CUDA: " + elapsedCuda.ToString() + "ms");
+
         }
     }
 

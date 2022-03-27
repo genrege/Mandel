@@ -32,6 +32,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.mainSplitter = new System.Windows.Forms.SplitContainer();
             this.SplitControlContainer = new System.Windows.Forms.SplitContainer();
+            this.txtMaxIterations = new System.Windows.Forms.NumericUpDown();
             this.checkLoop = new System.Windows.Forms.CheckBox();
             this.btnLoadRec = new System.Windows.Forms.Button();
             this.btnSaveRecording = new System.Windows.Forms.Button();
@@ -54,21 +55,19 @@
             this.txtYMin = new System.Windows.Forms.TextBox();
             this.txtXMax = new System.Windows.Forms.TextBox();
             this.txtXMin = new System.Windows.Forms.TextBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.trackBarMaxIterations = new System.Windows.Forms.TrackBar();
             this.txtMouseCoords = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.txtMaxIterations = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplitter)).BeginInit();
             this.mainSplitter.Panel1.SuspendLayout();
             this.mainSplitter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).BeginInit();
             this.SplitControlContainer.Panel1.SuspendLayout();
             this.SplitControlContainer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.txtMaxIterations)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.upDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.txtMaxIterations)).BeginInit();
             this.SuspendLayout();
             // 
             // mainSplitter
@@ -121,7 +120,6 @@
             this.SplitControlContainer.Panel1.Controls.Add(this.txtYMin);
             this.SplitControlContainer.Panel1.Controls.Add(this.txtXMax);
             this.SplitControlContainer.Panel1.Controls.Add(this.txtXMin);
-            this.SplitControlContainer.Panel1.Controls.Add(this.checkBox1);
             this.SplitControlContainer.Panel1.Controls.Add(this.trackBarMaxIterations);
             this.SplitControlContainer.Panel1.Controls.Add(this.txtMouseCoords);
             this.SplitControlContainer.Panel1.Controls.Add(this.label1);
@@ -130,11 +128,19 @@
             this.SplitControlContainer.SplitterDistance = 467;
             this.SplitControlContainer.TabIndex = 4;
             // 
+            // txtMaxIterations
+            // 
+            this.txtMaxIterations.Location = new System.Drawing.Point(9, 56);
+            this.txtMaxIterations.Name = "txtMaxIterations";
+            this.txtMaxIterations.Size = new System.Drawing.Size(120, 20);
+            this.txtMaxIterations.TabIndex = 27;
+            this.txtMaxIterations.ValueChanged += new System.EventHandler(this.txtMaxIterations_ValueChanged);
+            // 
             // checkLoop
             // 
             this.checkLoop.AutoSize = true;
             this.checkLoop.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.checkLoop.Location = new System.Drawing.Point(284, 287);
+            this.checkLoop.Location = new System.Drawing.Point(282, 306);
             this.checkLoop.Name = "checkLoop";
             this.checkLoop.Size = new System.Drawing.Size(96, 17);
             this.checkLoop.TabIndex = 26;
@@ -143,7 +149,7 @@
             // 
             // btnLoadRec
             // 
-            this.btnLoadRec.Location = new System.Drawing.Point(283, 403);
+            this.btnLoadRec.Location = new System.Drawing.Point(281, 422);
             this.btnLoadRec.Name = "btnLoadRec";
             this.btnLoadRec.Size = new System.Drawing.Size(84, 23);
             this.btnLoadRec.TabIndex = 25;
@@ -153,7 +159,7 @@
             // 
             // btnSaveRecording
             // 
-            this.btnSaveRecording.Location = new System.Drawing.Point(284, 374);
+            this.btnSaveRecording.Location = new System.Drawing.Point(282, 393);
             this.btnSaveRecording.Name = "btnSaveRecording";
             this.btnSaveRecording.Size = new System.Drawing.Size(84, 23);
             this.btnSaveRecording.TabIndex = 24;
@@ -163,7 +169,7 @@
             // 
             // btnReplay
             // 
-            this.btnReplay.Location = new System.Drawing.Point(283, 345);
+            this.btnReplay.Location = new System.Drawing.Point(281, 364);
             this.btnReplay.Name = "btnReplay";
             this.btnReplay.Size = new System.Drawing.Size(84, 23);
             this.btnReplay.TabIndex = 23;
@@ -173,7 +179,7 @@
             // 
             // btnRecord
             // 
-            this.btnRecord.Location = new System.Drawing.Point(284, 316);
+            this.btnRecord.Location = new System.Drawing.Point(282, 335);
             this.btnRecord.Name = "btnRecord";
             this.btnRecord.Size = new System.Drawing.Size(83, 23);
             this.btnRecord.TabIndex = 22;
@@ -187,10 +193,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listGPU.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.listGPU.FormattingEnabled = true;
-            this.listGPU.Location = new System.Drawing.Point(71, 117);
+            this.listGPU.Location = new System.Drawing.Point(12, 133);
             this.listGPU.MaximumSize = new System.Drawing.Size(300, 0);
             this.listGPU.Name = "listGPU";
-            this.listGPU.Size = new System.Drawing.Size(296, 21);
+            this.listGPU.Size = new System.Drawing.Size(300, 21);
             this.listGPU.TabIndex = 21;
             this.listGPU.SelectedIndexChanged += new System.EventHandler(this.listGPU_SelectedIndexChanged);
             // 
@@ -208,7 +214,7 @@
             // 
             // btnResetJulia
             // 
-            this.btnResetJulia.Location = new System.Drawing.Point(9, 363);
+            this.btnResetJulia.Location = new System.Drawing.Point(7, 382);
             this.btnResetJulia.Name = "btnResetJulia";
             this.btnResetJulia.Size = new System.Drawing.Size(83, 23);
             this.btnResetJulia.TabIndex = 19;
@@ -246,7 +252,7 @@
             // 
             // btnSaveBMP
             // 
-            this.btnSaveBMP.Location = new System.Drawing.Point(98, 287);
+            this.btnSaveBMP.Location = new System.Drawing.Point(96, 306);
             this.btnSaveBMP.Name = "btnSaveBMP";
             this.btnSaveBMP.Size = new System.Drawing.Size(83, 23);
             this.btnSaveBMP.TabIndex = 16;
@@ -256,7 +262,7 @@
             // 
             // btnResetZoom
             // 
-            this.btnResetZoom.Location = new System.Drawing.Point(9, 392);
+            this.btnResetZoom.Location = new System.Drawing.Point(7, 411);
             this.btnResetZoom.Name = "btnResetZoom";
             this.btnResetZoom.Size = new System.Drawing.Size(83, 23);
             this.btnResetZoom.TabIndex = 15;
@@ -266,7 +272,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(9, 316);
+            this.btnSave.Location = new System.Drawing.Point(7, 335);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(83, 23);
             this.btnSave.TabIndex = 14;
@@ -276,7 +282,7 @@
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(9, 287);
+            this.btnLoad.Location = new System.Drawing.Point(7, 306);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(83, 23);
             this.btnLoad.TabIndex = 13;
@@ -291,7 +297,7 @@
             this.txtGeneral.BackColor = System.Drawing.Color.Navy;
             this.txtGeneral.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtGeneral.ForeColor = System.Drawing.Color.Yellow;
-            this.txtGeneral.Location = new System.Drawing.Point(9, 256);
+            this.txtGeneral.Location = new System.Drawing.Point(7, 275);
             this.txtGeneral.Name = "txtGeneral";
             this.txtGeneral.Size = new System.Drawing.Size(358, 13);
             this.txtGeneral.TabIndex = 12;
@@ -321,7 +327,7 @@
             this.txtBounds.BackColor = System.Drawing.Color.Navy;
             this.txtBounds.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtBounds.ForeColor = System.Drawing.Color.Yellow;
-            this.txtBounds.Location = new System.Drawing.Point(9, 218);
+            this.txtBounds.Location = new System.Drawing.Point(7, 237);
             this.txtBounds.Name = "txtBounds";
             this.txtBounds.Size = new System.Drawing.Size(358, 13);
             this.txtBounds.TabIndex = 9;
@@ -333,11 +339,10 @@
             this.txtYMax.BackColor = System.Drawing.Color.Navy;
             this.txtYMax.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtYMax.ForeColor = System.Drawing.Color.Yellow;
-            this.txtYMax.Location = new System.Drawing.Point(9, 199);
+            this.txtYMax.Location = new System.Drawing.Point(7, 218);
             this.txtYMax.Name = "txtYMax";
             this.txtYMax.Size = new System.Drawing.Size(358, 13);
             this.txtYMax.TabIndex = 8;
-            this.txtYMax.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // txtYMin
             // 
@@ -346,7 +351,7 @@
             this.txtYMin.BackColor = System.Drawing.Color.Navy;
             this.txtYMin.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtYMin.ForeColor = System.Drawing.Color.Yellow;
-            this.txtYMin.Location = new System.Drawing.Point(9, 180);
+            this.txtYMin.Location = new System.Drawing.Point(7, 199);
             this.txtYMin.Name = "txtYMin";
             this.txtYMin.Size = new System.Drawing.Size(358, 13);
             this.txtYMin.TabIndex = 7;
@@ -358,7 +363,7 @@
             this.txtXMax.BackColor = System.Drawing.Color.Navy;
             this.txtXMax.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtXMax.ForeColor = System.Drawing.Color.Yellow;
-            this.txtXMax.Location = new System.Drawing.Point(9, 161);
+            this.txtXMax.Location = new System.Drawing.Point(7, 180);
             this.txtXMax.Name = "txtXMax";
             this.txtXMax.Size = new System.Drawing.Size(358, 13);
             this.txtXMax.TabIndex = 6;
@@ -370,30 +375,16 @@
             this.txtXMin.BackColor = System.Drawing.Color.Navy;
             this.txtXMin.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtXMin.ForeColor = System.Drawing.Color.Yellow;
-            this.txtXMin.Location = new System.Drawing.Point(9, 142);
+            this.txtXMin.Location = new System.Drawing.Point(7, 161);
             this.txtXMin.Name = "txtXMin";
             this.txtXMin.Size = new System.Drawing.Size(358, 13);
             this.txtXMin.TabIndex = 5;
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Checked = true;
-            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox1.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.checkBox1.Location = new System.Drawing.Point(9, 119);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(49, 17);
-            this.checkBox1.TabIndex = 4;
-            this.checkBox1.Text = "GPU";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // trackBarMaxIterations
             // 
             this.trackBarMaxIterations.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackBarMaxIterations.Location = new System.Drawing.Point(9, 82);
+            this.trackBarMaxIterations.Location = new System.Drawing.Point(3, 82);
             this.trackBarMaxIterations.Maximum = 16000;
             this.trackBarMaxIterations.Minimum = 1;
             this.trackBarMaxIterations.Name = "trackBarMaxIterations";
@@ -410,7 +401,7 @@
             this.txtMouseCoords.BackColor = System.Drawing.Color.Navy;
             this.txtMouseCoords.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtMouseCoords.ForeColor = System.Drawing.Color.Yellow;
-            this.txtMouseCoords.Location = new System.Drawing.Point(9, 237);
+            this.txtMouseCoords.Location = new System.Drawing.Point(7, 256);
             this.txtMouseCoords.Name = "txtMouseCoords";
             this.txtMouseCoords.Size = new System.Drawing.Size(358, 13);
             this.txtMouseCoords.TabIndex = 0;
@@ -431,14 +422,6 @@
             this.timer1.Interval = 1;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // txtMaxIterations
-            // 
-            this.txtMaxIterations.Location = new System.Drawing.Point(9, 56);
-            this.txtMaxIterations.Name = "txtMaxIterations";
-            this.txtMaxIterations.Size = new System.Drawing.Size(120, 20);
-            this.txtMaxIterations.TabIndex = 27;
-            this.txtMaxIterations.ValueChanged += new System.EventHandler(this.txtMaxIterations_ValueChanged);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -456,9 +439,9 @@
             this.SplitControlContainer.Panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).EndInit();
             this.SplitControlContainer.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.txtMaxIterations)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.upDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.txtMaxIterations)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -470,7 +453,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TrackBar trackBarMaxIterations;
         private System.Windows.Forms.SplitContainer SplitControlContainer;
-        private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.TextBox txtXMax;
         private System.Windows.Forms.TextBox txtXMin;
         private System.Windows.Forms.TextBox txtYMax;
