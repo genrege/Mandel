@@ -60,6 +60,7 @@ namespace MathsEx
                 m_wx = wx;
                 m_wy = wy;
 
+                m_arr.reserve(m_wx * m_wy);
                 m_bmp.reserve(m_wx * m_wy);
                 m_density.reserve(m_wx * m_wy);
             }
@@ -85,21 +86,18 @@ namespace MathsEx
 
         void CalculateSetCUDA(const accelerator_view& v, const unsigned maxIters) 
         {
-                
-            auto* r = m_cuda.alloc_cuda(sizeof(unsigned int) * m_wx * m_wy);
-            m_cuda.render_mbrot(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy, maxIters, r);
+            m_cuda.render_mbrot(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy, maxIters, m_arr);
 
             setPalette(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, r, m_bmp, maxIters, m_palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
         }
 
         void CalculateJuliaCUDA(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
         {
-            auto* r = m_cuda.alloc_cuda(sizeof(unsigned int) * m_wx * m_wy);
-            m_cuda.render_julia(m_x0, m_x1, m_y0, m_y1, k.Re(), k.Im(), m_wx, m_wy, maxIters, r);
+            m_cuda.render_julia(m_x0, m_x1, m_y0, m_y1, k.Re(), k.Im(), m_wx, m_wy, maxIters, m_arr);
 
             setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, r, m_bmp, maxIters, m_palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
         }
 
         void CalculateBuddha(const accelerator_view& v, bool anti_buddha, const unsigned maxIters) restrict(cpu)
@@ -267,12 +265,16 @@ namespace MathsEx
             mandelbrotResult.discard_data();
         }
 
-        static void gpuMandelbrotKernelCUDA(unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        static void gpuMandelbrotKernelCUDA(unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned int max_iters, unsigned* iters)
         {
             mbrot_cuda cuda;
-            auto* r = cuda.alloc_cuda(sizeof(unsigned int) * display_w * display_h);
-            cuda.render_mbrot(x0, x1, y0, y1, display_w, display_h, max_iter, r);
-            memcpy(iters, r, sizeof(unsigned int) * display_w * display_h);
+            cuda.render_mbrot(x0, x1, y0, y1, display_w, display_h, max_iters, iters);
+        }
+
+        static void gpuJuliaKernelCUDA(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        {
+            mbrot_cuda cuda;
+            cuda.render_julia(x0, x1, y0, y1, k.Re(), k.Im(), display_w, display_h, max_iter, iters);
         }
 
         static void cpuJuliaKernel(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
@@ -415,14 +417,6 @@ namespace MathsEx
                 });
             mandelbrotResult.synchronize();
             mandelbrotResult.discard_data();
-        }
-
-        static void gpuJuliaKernelCUDA(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
-        {
-            mbrot_cuda cuda;
-            auto* r = cuda.alloc_cuda(sizeof(unsigned int) * display_w * display_h);
-            cuda.render_julia(x0, x1, y0, y1, k.Re(), k.Im(), display_w, display_h, max_iter, r);
-            memcpy(iters, r, sizeof(unsigned int) * display_w * display_h);
         }
 
         //This function's a bit crap because gpu threads write concurrently to the map without any synchronisation, 
