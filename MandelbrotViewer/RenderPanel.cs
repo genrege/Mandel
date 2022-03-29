@@ -329,7 +329,6 @@ namespace MandelbrotViewer
 
         private void RenderPanel_Paint(object sender, PaintEventArgs e)
         {
-            double aspectRatio = (double)Width / (double)Height;
             var hdc = e.Graphics.GetHdc();
 
             Render();
