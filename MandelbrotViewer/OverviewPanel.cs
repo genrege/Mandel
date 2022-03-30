@@ -41,7 +41,7 @@ namespace MandelbrotViewer
         {
             double aspectRatio = (double)Width / (double)Height;
             var hdc = e.Graphics.GetHdc();
-            MandelbrotAPI.RenderBasic(gpuIndex, hdc, false, false, maxIterations, coord_);
+            MandelbrotAPI.RenderBasic(gpuIndex, hdc, false, false, maxIterations >> 1, coord_);
         }
 
         private void OverviewPanel_MouseClick(object sender, MouseEventArgs e)
@@ -75,7 +75,7 @@ namespace MandelbrotViewer
             int my2 = p1.Y;
 
             var hdc = this.CreateGraphics().GetHdc();
-            MandelbrotAPI.RenderBasic(gpuIndex, hdc, true, false, 100, coord_);
+            MandelbrotAPI.RenderBasic(gpuIndex, hdc, true, false, maxIterations >> 1, coord_);
 
             int cx = mx1 + (mx2 - mx1) / 2;
             int cy = my1 + (my2 - my1) / 2;
