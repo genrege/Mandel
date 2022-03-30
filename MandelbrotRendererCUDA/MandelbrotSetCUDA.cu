@@ -99,9 +99,10 @@ void mbrot_cuda::render_mbrot(double x0, double x1, double y0, double y1, int wx
     const double w = (x1 - x0) / double(wx);
     const double h = (y1 - y0) / double(wy);
 
-    const int gs = 72;
-    dim3 blocks(gs, gs);
-    dim3 threads(wx / gs + 1, wy / gs + 1);
+    const int gs = 32;
+    int extra = (wx % 32 == 0) ? 0 : 1;
+    dim3 threads(gs, gs);
+    dim3 blocks(wx / gs + extra, wy / gs + extra);
 
     auto * dev_r = alloc_cuda(sizeof(unsigned int) * wx * wy);
     kernel_mbrot << <blocks, threads>> > (x0, x1, y0, y1, wx, wy, w, h, max_iter, dev_r);
@@ -113,11 +114,12 @@ void mbrot_cuda::render_julia(double x0, double x1, double y0, double y1, double
     const double w = (x1 - x0) / double(wx);
     const double h = (y1 - y0) / double(wy);
 
-    const int gs = 96;
-    dim3 grid(gs, gs);
-    dim3 block(wx / gs + 1, wy / gs + 1);
+    const int gs = 32;
+    int extra = (wx % 32 == 0) ? 0 : 1;
+    dim3 threads(gs, gs);
+    dim3 blocks(wx / gs + extra, wy / gs + extra);
 
     auto* dev_r = alloc_cuda(sizeof(unsigned int) * wx * wy);
-    kernel_julia << <grid, block >> > (x0, x1, y0, y1, kr, ki, w, h, wx, wy, max_iter, dev_r);
+    kernel_julia << <blocks, threads>> > (x0, x1, y0, y1, kr, ki, w, h, wx, wy, max_iter, dev_r);
     cudaMemcpy(r, dev_r, sizeof(unsigned int) * wx * wy, cudaMemcpyKind::cudaMemcpyDeviceToHost);
 }
