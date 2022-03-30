@@ -329,7 +329,6 @@ namespace MandelbrotViewer
 
         private void RenderPanel_Paint(object sender, PaintEventArgs e)
         {
-            double aspectRatio = (double)Width / (double)Height;
             var hdc = e.Graphics.GetHdc();
 
             Render();
@@ -426,15 +425,17 @@ namespace MandelbrotViewer
         {
             //Quick and dirty performance test, CUDA vs C++ AMP
 
+            MandelbrotAPI.CalculateMandelbrot(gpuIndex, useGpu, false, MaxIterations, Coord);
             var timer = new Stopwatch();
             timer.Start();
             for (int i = 0; i < 10; ++i)
             {
-                MandelbrotAPI.CalculateMandelbrot(gpuIndex, true, false, MaxIterations, Coord);
+                MandelbrotAPI.CalculateMandelbrot(gpuIndex, useGpu, false, MaxIterations, Coord);
             }
             timer.Stop();
             var elapsedAMP = timer.ElapsedMilliseconds;
 
+            MandelbrotAPI.CalculateMandelbrot(gpuIndex, true, true, MaxIterations, Coord);
             timer.Reset();
             timer.Start();
             for (int i = 0; i < 10; ++i)
@@ -444,7 +445,7 @@ namespace MandelbrotViewer
             timer.Stop();
             var elapsedCuda = timer.ElapsedMilliseconds;
 
-            MessageBox.Show("C++ AMP: " + elapsedAMP.ToString() + "ms, CUDA: " + elapsedCuda.ToString() + "ms");
+            MessageBox.Show("Current (non-CUDA): " + elapsedAMP.ToString() + "ms, CUDA: " + elapsedCuda.ToString() + "ms");
 
         }
     }

@@ -1,6 +1,12 @@
 # Mandel
 Mandelbrot/Julia and related fractal interactive rendering.
 
+Latest commit - CUDA
+- Adds basic CUDA calculations for some sets
+- Startup cost of CUDA calls higher than C++ AMP and need to resolve this
+- For large/high iteration sets, CUDA is faster.
+- Temporary benchmark comparison by double-clicking the render panel for comparison of current GPU running C++ AMP vs installed NVIDIA gpu running CUDA
+
 Build:
 - Builds with VS 2022, C++ 143 toolset and .Net 4.7.2
 
