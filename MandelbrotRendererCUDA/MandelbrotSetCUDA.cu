@@ -2,8 +2,72 @@
 #include "device_launch_parameters.h"
 
 #include "MandelbrotSetCUDA.h"
-#include <stdio.h>
-#include <Windows.h>
+
+class complex
+{
+public:
+    __device__ complex() : re_(0.0), im_(0.0) {}
+    __device__ complex(double re, double im) : re_(re), im_(im) {}
+
+    __device__ double re() const { return re_; }
+    __device__ double im() const { return im_; }
+
+    __device__ complex operator+(const complex& r) const
+    {
+        return { re_ + r.re_, im_ + r.im_ };
+    }
+
+    __device__ complex& operator+=(const complex& r)
+    {
+        re_ += r.re_;
+        im_ += r.im_;
+        return *this;
+    }
+
+    __device__ complex operator*(const complex& r) const
+    {
+        return { re_ * r.re_ - im_ * r.im_, im_ * r.re_ + re_ * r.im_ };
+    }
+
+    __device__ complex& operator*=(const complex& r)
+    {
+        double tre = re_;
+        re_ = re_ * r.re_ - im_ * r.im_;
+        im_ = im_ * tre + tre * r.im_;
+        return *this;
+    }
+    __device__ double sum_squares() const
+    {
+        return re_ * re_ + im_ * im_;
+    }
+
+private:
+    double re_;
+    double im_;
+};
+
+__global__ void kernel_mbrot2(double x0, double x1, double y0, double y1, int wx, int wy, double w, double h, int max_iter, unsigned int* r)
+{
+    const int ix = blockIdx.x * blockDim.x + threadIdx.x;
+    if (ix >= wx)
+        return;
+    const int iy = blockIdx.y * blockDim.y + threadIdx.y;
+    if (iy >= wy)
+        return;
+
+    complex c(x0 + w * ix, y1 - h * iy);
+    complex z;
+
+    int iter = 0;
+    while (iter < max_iter && (z.sum_squares()) < 4.0)
+    {
+        z *= z;
+        z += c;
+        ++iter;
+    }
+    const auto idx = ix + wx * iy;
+    r[idx] = iter;
+}
 
 __global__ void kernel_mbrot(double x0, double x1, double y0, double y1, int wx, int wy, double w, double h, int max_iter, unsigned int* r)
 {
@@ -17,14 +81,13 @@ __global__ void kernel_mbrot(double x0, double x1, double y0, double y1, int wx,
     const double cr = x0 + w * ix;
     const double ci = y1 - h * iy;
 
-    int iter = 0;
-
     double zr = 0.0;
     double zi = 0.0;
 
     double zr2 = zr * zr;
     double zi2 = zi * zi;
     
+    int iter = 0;
     while (iter < max_iter && (zr2 + zi2) < 4.0)
     {
         zi = (zr + zr) * zi + ci;
@@ -100,7 +163,7 @@ void mbrot_cuda::render_mbrot(double x0, double x1, double y0, double y1, int wx
     const double h = (y1 - y0) / double(wy);
 
     const int gs = 32;
-    int extra = (wx % 32 == 0) ? 0 : 1;
+    int extra = (wx % gs == 0) ? 0 : 1;
     dim3 threads(gs, gs);
     dim3 blocks(wx / gs + extra, wy / gs + extra);
 
@@ -115,7 +178,7 @@ void mbrot_cuda::render_julia(double x0, double x1, double y0, double y1, double
     const double h = (y1 - y0) / double(wy);
 
     const int gs = 32;
-    int extra = (wx % 32 == 0) ? 0 : 1;
+    int extra = (wx % gs == 0) ? 0 : 1;
     dim3 threads(gs, gs);
     dim3 blocks(wx / gs + extra, wy / gs + extra);
 
@@ -123,3 +186,4 @@ void mbrot_cuda::render_julia(double x0, double x1, double y0, double y1, double
     kernel_julia << <blocks, threads>> > (x0, x1, y0, y1, kr, ki, w, h, wx, wy, max_iter, dev_r);
     cudaMemcpy(r, dev_r, sizeof(unsigned int) * wx * wy, cudaMemcpyKind::cudaMemcpyDeviceToHost);
 }
+

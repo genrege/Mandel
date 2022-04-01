@@ -296,7 +296,6 @@ extern "C" void renderMandelbrot(int gpuIndex, HDC hdc, bool gpu, bool cuda, int
     {
         if (cuda)
         {
-
             mset.CalculateSetCUDA(gpu_accelerator(gpuIndex), maxIterations);
         }
         else
@@ -510,7 +509,7 @@ extern "C" void paletteTransform(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pale
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    MandelbrotSet<double>::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MandelbrotSet<double>::rgb*)palette_data);
+    MandelbrotSet<double>::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);
@@ -553,7 +552,7 @@ extern "C" void paletteTransform2(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pal
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    MandelbrotSet<double>::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MandelbrotSet<double>::rgb*)palette_data);
+    MandelbrotSet<double>::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);

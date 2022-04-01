@@ -51,7 +51,7 @@ namespace MandelbrotViewer
             {
                 if (gpu != "CPU accelerator")
                     listGPU.Items.Add(gpu);
-                if (gpu.Contains("AMD"))
+                if (gpu.Contains("CUDA"))
                     bestGPU = listGPU.Items.Count - 1;
             }
             listGPU.Items.Add("CPU");
@@ -90,6 +90,7 @@ namespace MandelbrotViewer
         private void RenderPanel_OnPositionChange(object sender, EventArgs e)
         {
             var ssi = (SetScaleInfo)e;
+            overviewPanel.maxIterations = trackBarMaxIterations.Value;
             overviewPanel.DrawBox(ssi.X, ssi.Y, ssi.xMin, ssi.xMax, ssi.yMin, ssi.yMax, Color.Red);
 
             txtXMin.Text = string.Format("XMin: {0}", ssi.xMin);

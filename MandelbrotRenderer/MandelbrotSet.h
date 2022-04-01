@@ -7,7 +7,7 @@
 
 #include "Complex.h"
 #include "cached_memory.h"
-
+#include "fractal.h"
 
 #include "../MandelbrotRendererCUDA/MandelbrotSetCUDA.h"
 
@@ -22,18 +22,9 @@ namespace MathsEx
     template <class RealType> class MandelbrotSet
     {
     public:
-        struct rgb
-        {
-            rgb() : b(0), g(0), r(0), pad(0xFF) {}
-            unsigned char b;
-            unsigned char g;
-            unsigned char r;
-            unsigned char pad;
-        };
 
         typedef RealType FloatingPointType;
 
-        const unsigned* palette() const { return m_palette; }
         const unsigned* bmp() const { return (unsigned*)m_bmp.access(); }
         const unsigned data_size() const { return m_wx * m_wy; }
 
@@ -72,7 +63,7 @@ namespace MathsEx
             cpuMandelbrotKernel(m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             setPalette(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_mbrot);
         }
 
         void CalculateSet(const accelerator_view& v, const unsigned maxIters) restrict(cpu)
@@ -81,7 +72,7 @@ namespace MathsEx
             gpuMandelbrotKernel(v, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             setPalette(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_mbrot);
         }
 
         void CalculateSetCUDA(const accelerator_view& v, const unsigned maxIters) 
@@ -89,7 +80,7 @@ namespace MathsEx
             m_cuda.render_mbrot(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy, maxIters, m_arr);
 
             setPalette(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_mbrot);
         }
 
         void CalculateJuliaCUDA(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
@@ -97,7 +88,7 @@ namespace MathsEx
             m_cuda.render_julia(m_x0, m_x1, m_y0, m_y1, k.Re(), k.Im(), m_wx, m_wy, maxIters, m_arr);
 
             setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_julia);
         }
 
         void CalculateBuddha(const accelerator_view& v, bool anti_buddha, const unsigned maxIters) restrict(cpu)
@@ -105,7 +96,7 @@ namespace MathsEx
             gpuCalculationDensity(v, anti_buddha, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_density);
 
             setPaletteBuddha(1 + maxIters, m_density, m_wx * m_wy);
-            gpuPaletteKernel(v, m_wx * m_wy, m_density, m_bmp, maxIters, m_palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_density, m_bmp, maxIters, m_palette_buddha);
         }
 
         void CalculateJulia(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
@@ -114,7 +105,7 @@ namespace MathsEx
             gpuJuliaKernel(v, k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_julia);
         }
 
         void CalculateJuliaCPU(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
@@ -123,34 +114,27 @@ namespace MathsEx
             cpuJuliaKernel(k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette);
+            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_julia);
         }
 
         void setPalette(size_t size)
         {
-            if (m_palette.reserve(size))
+            if (m_palette_mbrot.reserve(size))
             {
-                const double scale = 1.0 / size;
-                for (size_t i = 0; i < size; ++i)
+                const float scale = 6.3f / size;
+                #pragma omp parallel for
+                for (int i = 0; i < size; ++i)
                 {
-                    const double s1 = double(i * 3) * scale;
-                    const double s2 = double(i * 4) * scale;
-                    const double s3 = double(i * 5) * scale;
-
-                    const double f = min(1.0, (1 - pow(s1 - 1, 4)));
-                    const double g = min(1.0, (1 - pow(s2 - 1, 2)));
-                    const double h = min(1.0, (1 - pow(s3 - 1, 5)));
-
-                    m_palette[i].r = char(255 * f);
-                    m_palette[i].g = char(255 * g);
-                    m_palette[i].b = char(255 * h);
+                    m_palette_mbrot[i].r = static_cast<unsigned char>(sin(scale * i + 3) * 127 + 128);
+                    m_palette_mbrot[i].g = static_cast<unsigned char>(sin(scale * i + 5) * 127 + 128);
+                    m_palette_mbrot[i].b = static_cast<unsigned char>(sin(scale * i + 1) * 127 + 128);
                 }
             }
         }
 
         void setPaletteJulia(size_t size)
         {
-            if (m_palette.reserve(size))
+            if (m_palette_julia.reserve(size))
             {
                 const double scale = 1.0 / size;
                 for (size_t i = 0; i < size; ++i)
@@ -165,23 +149,23 @@ namespace MathsEx
                     const double h = min(1.0, (1 - pow(s3 - 1, 6)));
                     */
                     const double s1 = double(i * 3) * scale;
-                    const double s2 = double(i * 4) * scale;
-                    const double s3 = double(i * 5) * scale;
+                    const double s2 = double(i * 5) * scale;
+                    const double s3 = double(i * 1) * scale;
 
-                    const double f = min(1.0, (1 - pow(s1 - 1, 2)));
-                    const double g = min(1.0, (1 - pow(s2 - 1, 2)));
-                    const double h = min(1.0, (1 - pow(s3 - 1, 2)));
+                    const double f = min(1.0, (1 - sin(s1 - 1)));
+                    const double g = min(1.0, (1 - sin(s2 - 1)));
+                    const double h = min(1.0, (1 - sin(s3 - 1)));
 
-                    m_palette[i].r = char(255 * f);
-                    m_palette[i].g = char(255 * g);
-                    m_palette[i].b = char(255 * h);
+                    m_palette_julia[i].r = char(255 * f);
+                    m_palette_julia[i].g = char(255 * g);
+                    m_palette_julia[i].b = char(255 * h);
                 }
             }
         }
 
         void setPaletteBuddha(size_t size, unsigned* density, unsigned size_density)
         {
-            if (m_palette.reserve(size))
+            if (m_palette_buddha.reserve(size))
             {
                 unsigned max_density = 0;
                 for (size_t i = 0; i < size_density; ++i)
@@ -191,7 +175,7 @@ namespace MathsEx
 
                 for (size_t i = 0; i < size; ++i)
                 {
-                    ZeroMemory(&m_palette[i], sizeof(rgb));
+                    ZeroMemory(&m_palette_buddha[i], sizeof(rgb));
 
                     const double s1 = min(1.0, double(i) * palette_scale);
                     const double s2 = min(1.0, double(i) * palette_scale);
@@ -201,11 +185,11 @@ namespace MathsEx
                     const double g = min(1.0, (1 - pow(s1 - 1, 2)));
                     const double h = min(1.0, (1 - pow(s3 - 1, 2)));
 
-                    m_palette[i].r = char(255 * f);
+                    m_palette_buddha[i].r = char(255 * f);
                     if (i > 16)
-                        m_palette[i].g = char(255 * g);
+                        m_palette_buddha[i].g = char(255 * g);
                     if (i > 24)
-                        m_palette[i].b = char(255 * h);
+                        m_palette_buddha[i].b = char(255 * h);
                 }
             }
         }
@@ -507,18 +491,29 @@ namespace MathsEx
         }
 
         //Calculation Mandelbrot set iterations
-        inline static unsigned CalculatePoint(const Complex<RealType>& c, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculatePoint(const Complex<RealType>& c, unsigned max_iter) restrict(amp, cpu)
         {
-            unsigned iters = 0;
+            const double cr = c.Re();
+            const double ci = c.Im();
 
-            Complex<RealType> z(0.0, 0.0);
-            while (iters < maxIters && SumSquares(z) <= 4.0)
+            double zr = 0.0;
+            double zi = 0.0;
+
+            double zr2 = zr * zr;
+            double zi2 = zi * zi;
+
+            unsigned iter = 0;
+            while (iter < max_iter && (zr2 + zi2) < 4.0)
             {
-                z = z.squared() + c;
-                ++iters;
-            }
+                zi = (zr + zr) * zi + ci;
+                zr = zr2 - zi2 + cr;
 
-            return iters;
+                zr2 = zr * zr;
+                zi2 = zi * zi;
+
+                ++iter;
+            }
+            return iter;
         }
 
         inline static unsigned CalculateJulia(const Complex<RealType>& c, const Complex<RealType>& k, unsigned maxIters) restrict(amp, cpu)
@@ -783,7 +778,9 @@ namespace MathsEx
         unsigned m_wy;
 
         //Runtime storage
-        cache_memory<rgb>       m_palette;
+        cache_memory<rgb>       m_palette_mbrot;
+        cache_memory<rgb>       m_palette_julia;
+        cache_memory<rgb>       m_palette_buddha;
         cache_memory<unsigned>  m_arr;
         cache_memory<unsigned>  m_bmp;
         cache_memory<unsigned>  m_density;

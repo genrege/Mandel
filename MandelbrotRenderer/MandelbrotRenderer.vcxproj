@@ -66,7 +66,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(OCL_Root)/lib/x86_64;C:\git\Mandel\x64\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CUDA_PATH)/lib/x64;$(OCL_Root)/lib/x86_64;$(SolutionDir)$(Platform)/$(Configuration)</AdditionalLibraryDirectories>
       <AdditionalDependencies>MandelbrotRendererCUDA.lib;opencl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -91,13 +91,14 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(CUDA_PATH)/lib/x64;$(OCL_Root)/lib/x86_64;C:/git/Mandel/x64/$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CUDA_PATH)/lib/x64;$(OCL_Root)/lib/x86_64;$(SolutionDir)$(Platform)/$(Configuration)</AdditionalLibraryDirectories>
       <AdditionalDependencies>MandelbrotRendererCUDA.lib;opencl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="cached_memory.h" />
     <ClInclude Include="Complex.h" />
+    <ClInclude Include="fractal.h" />
     <ClInclude Include="MandelbrotSet.h" />
     <ClInclude Include="MandelbrotRendererAPI.h" />
     <ClInclude Include="MandelbrotSetCL.h" />
