@@ -51,7 +51,7 @@ namespace MandelbrotViewer
             {
                 if (gpu != "CPU accelerator")
                     listGPU.Items.Add(gpu);
-                if (gpu.Contains("CUDA"))
+                if (gpu.Contains("CPU"))
                     bestGPU = listGPU.Items.Count - 1;
             }
             listGPU.Items.Add("CPU");

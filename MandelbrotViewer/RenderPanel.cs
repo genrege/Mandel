@@ -445,7 +445,7 @@ namespace MandelbrotViewer
             timer.Stop();
             var elapsedCuda = timer.ElapsedMilliseconds;
 
-            MessageBox.Show("Current (non-CUDA): " + elapsedAMP.ToString() + "ms, CUDA: " + elapsedCuda.ToString() + "ms");
+            MessageBox.Show("Current (non-CUDA): " + elapsedAMP.ToString() + "ms, CUDA: " + elapsedCuda.ToString() + "ms = " + ((float)(elapsedAMP - elapsedCuda)/ (float)elapsedAMP).ToString());
 
         }
     }

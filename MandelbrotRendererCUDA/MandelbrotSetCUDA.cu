@@ -157,7 +157,7 @@ unsigned int* mbrot_cuda::alloc_cuda(int size)
     return m_dev_r;
 }
 
-void mbrot_cuda::render_mbrot(double x0, double x1, double y0, double y1, int wx, int wy, int max_iter, unsigned int* r)
+void mbrot_cuda::render_mbrot(int wx, int wy, double x0, double x1, double y0, double y1, int max_iter, unsigned int* r)
 {
     const double w = (x1 - x0) / double(wx);
     const double h = (y1 - y0) / double(wy);
@@ -172,7 +172,7 @@ void mbrot_cuda::render_mbrot(double x0, double x1, double y0, double y1, int wx
     cudaMemcpy(r, dev_r, sizeof(unsigned int) * wx * wy, cudaMemcpyKind::cudaMemcpyDeviceToHost);
 }
 
-void mbrot_cuda::render_julia(double x0, double x1, double y0, double y1, double kr, double ki, int wx, int wy, int max_iter, unsigned int* r)
+void mbrot_cuda::render_julia(int wx, int wy, double x0, double x1, double y0, double y1, double kr, double ki, int max_iter, unsigned int* r)
 {
     const double w = (x1 - x0) / double(wx);
     const double h = (y1 - y0) / double(wy);

@@ -65,10 +65,17 @@ public:
 		return memory_[index];
 	}
 
+	const base_t& operator[](size_t index) const
+	{
+		return memory_[index];
+	}
+
 	operator base_t*()
 	{
 		return memory_;
 	}
+
+	size_t size() const { return size_; }
 
 private:
 	size_t size_;
