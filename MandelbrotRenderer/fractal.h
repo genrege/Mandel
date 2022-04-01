@@ -177,8 +177,7 @@ public:
             const auto im = y0 + array_y * set_step_y;
             const Complex<double> c(re, im);
 
-            const auto point_value = calculate_point(c, max_iter);
-            iters[i] = point_value;
+            iters[i] = calculate_point(c, max_iter);
         }
     }
 
