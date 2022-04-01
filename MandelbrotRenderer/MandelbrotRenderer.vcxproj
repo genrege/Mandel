@@ -99,13 +99,18 @@
     <ClInclude Include="cached_memory.h" />
     <ClInclude Include="Complex.h" />
     <ClInclude Include="fractal.h" />
+    <ClInclude Include="kernel_amp.h" />
+    <ClInclude Include="kernel_cpu.h" />
+    <ClInclude Include="kernel_cuda.h" />
     <ClInclude Include="MandelbrotSet.h" />
     <ClInclude Include="MandelbrotRendererAPI.h" />
     <ClInclude Include="MandelbrotSetCL.h" />
+    <ClInclude Include="palette.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="MandelbrotRendererAPI.cpp" />
+    <ClCompile Include="palette.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

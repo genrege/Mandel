@@ -309,7 +309,7 @@ extern "C" void renderMandelbrot(int gpuIndex, HDC hdc, bool gpu, bool cuda, int
     else
         mandelbrotset.calculate_set_cpu(max_iterations); 
 
-    display_bitmap.reserve(sizeof(unsigned) * screenWidth * screenHeight);
+    display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, mandelbrotset.data(), display_bitmap);
 
     sendToDisplay(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned int>());
@@ -341,11 +341,14 @@ extern "C" void renderBuddha(int gpuIndex, HDC hdc, bool antiBuddha, int maxIter
     sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
 }
 
-extern "C" void saveMandelbrotBitmap(int gpuIndex, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveMandelbrotBitmap(int gpuIndex, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
-    mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateSet(gpu_accelerator(gpuIndex), maxIterations);
-    saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
+    mandelbrotset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
+    mandelbrotset.calculate_set_amp(gpu_accelerator(gpuIndex), max_iterations);
+    display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
+    default_palette.apply(max_iterations, mandelbrotset.data(), display_bitmap);
+    saveToBitmap(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned int>(), filename);
+
 }
 
 extern "C" void saveJuliaBitmap(int gpuIndex, double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
@@ -364,11 +367,13 @@ extern "C" void saveBuddhaBitmap(int gpuIndex, HDC hdc, bool antiBuddha, int max
     saveToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
 }
 
-extern "C" void saveMandelbrotJPG(int gpuIndex, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
+extern "C" void saveMandelbrotJPG(int gpuIndex, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
 {
-    mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateSet(gpu_accelerator(gpuIndex), maxIterations);
-    saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
+    mandelbrotset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
+    mandelbrotset.calculate_set_amp(gpu_accelerator(gpuIndex), max_iterations);
+    display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
+    default_palette.apply(max_iterations, mandelbrotset.data(), display_bitmap);
+    saveToJPEG(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned>(), filename);
 }
 
 extern "C" void saveJuliaJPG(int gpuIndex, double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
@@ -406,12 +411,12 @@ extern "C" DLL_API void calculateMandelbrot(int gpuIndex, bool gpu, bool cuda, i
     if (gpu)
     {
         if (cuda)
-            mandelbrot_set::mandelbrot_kernel_cuda(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+            kernel_cuda::mandelbrot_kernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
         else
-            mandelbrot_set::mandelbrot_kernel_amp(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+            kernel_amp::mandelbrot_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
     }
     else
-        mandelbrot_set::mandelbrot_kernel_cpu(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+        kernel_cpu::mandelbrot_kernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
     SafeArrayUnaccessData(*ppsa);
     SafeArrayUnlock(*ppsa);

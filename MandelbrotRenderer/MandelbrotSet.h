@@ -8,6 +8,7 @@
 #include "Complex.h"
 #include "cached_memory.h"
 #include "fractal.h"
+#include "palette.h"
 
 #include "../MandelbrotRendererCUDA/MandelbrotSetCUDA.h"
 
@@ -51,37 +52,10 @@ namespace MathsEx
                 m_wx = wx;
                 m_wy = wy;
 
-                m_arr.reserve(m_wx * m_wy);
-                m_bmp.reserve(m_wx * m_wy);
-                m_density.reserve(m_wx * m_wy);
+                m_arr.allocate(m_wx * m_wy);
+                m_bmp.allocate(m_wx * m_wy);
+                m_density.allocate(m_wx * m_wy);
             }
-        }
-
-        void CalculateSetCPU(const accelerator_view& v, const unsigned max_iterations)
-        {
-            mbrot_.set_scale(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy);
-            mbrot_.calculate_set_cpu(max_iterations);
-
-            setPalette(1 + max_iterations);
-            gpuPaletteKernel(v, m_wx * m_wy, mbrot_.data(), m_bmp, max_iterations, m_palette_mbrot);
-        }
-
-        void CalculateSet(const accelerator_view& v, const unsigned max_iterations)
-        {
-            mbrot_.set_scale(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy);
-            mbrot_.calculate_set_amp(v, max_iterations);
-
-            setPalette(1 + max_iterations);
-            gpuPaletteKernel(v, m_wx * m_wy, mbrot_.data(), m_bmp, max_iterations, m_palette_mbrot);
-        }
-
-        void CalculateSetCUDA(const accelerator_view& v, const unsigned max_iterations)
-        {
-            mbrot_.set_scale(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy);
-            mbrot_.calculate_set_cuda(max_iterations);
-
-            setPalette(1 + max_iterations);
-            gpuPaletteKernel(v, m_wx * m_wy, mbrot_.data(), m_bmp, max_iterations, m_palette_mbrot);
         }
 
         void CalculateJuliaCUDA(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
@@ -102,7 +76,7 @@ namespace MathsEx
 
         void CalculateJulia(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
         {
-            m_arr.reserve(m_wx * m_wy);
+            m_arr.allocate(m_wx * m_wy);
             gpuJuliaKernel(v, k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             setPaletteJulia(1 + maxIters);
@@ -111,7 +85,7 @@ namespace MathsEx
 
         void CalculateJuliaCPU(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
         {
-            m_arr.reserve(m_wx * m_wy);
+            m_arr.allocate(m_wx * m_wy);
             cpuJuliaKernel(k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
 
             setPaletteJulia(1 + maxIters);
@@ -120,7 +94,7 @@ namespace MathsEx
 
         void setPalette(size_t size)
         {
-            if (m_palette_mbrot.reserve(size))
+            if (m_palette_mbrot.allocate(size))
             {
                 const float scale = 6.3f / size;
                 #pragma omp parallel for
@@ -135,7 +109,7 @@ namespace MathsEx
 
         void setPaletteJulia(size_t size)
         {
-            if (m_palette_julia.reserve(size))
+            if (m_palette_julia.allocate(size))
             {
                 const double scale = 1.0 / size;
                 for (size_t i = 0; i < size; ++i)
@@ -166,7 +140,7 @@ namespace MathsEx
 
         void setPaletteBuddha(size_t size, unsigned* density, unsigned size_density)
         {
-            if (m_palette_buddha.reserve(size))
+            if (m_palette_buddha.allocate(size))
             {
                 unsigned max_density = 0;
                 for (size_t i = 0; i < size_density; ++i)
@@ -193,12 +167,6 @@ namespace MathsEx
                         m_palette_buddha[i].b = char(255 * h);
                 }
             }
-        }
-
-        static void gpuMandelbrotKernelCUDA(unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned int max_iters, unsigned* iters)
-        {
-            mbrot_cuda cuda;
-            cuda.render_mbrot(display_w, display_h, x0, x1, y0, y1, max_iters, iters);
         }
 
         static void gpuJuliaKernelCUDA(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
@@ -373,7 +341,7 @@ namespace MathsEx
             const double r_set_step_y = 1.0 / set_step_y;
 
             concurrency::parallel_for_each(v, e,
-                [anti_buddha, display_w, display_h, x0, y0, set_step_x, set_step_y, r_set_step_x, r_set_step_y, max_iter, edmap](index<1> idx) restrict(amp, cpu)
+                [anti_buddha, display_w, display_h, x0, y0, set_step_x, set_step_y, r_set_step_x, r_set_step_y, max_iter, edmap](index<1> idx) restrict(amp)
                 {
                     const auto array_x = idx[0] % display_w;
                     const auto array_y = display_h - idx[0] / display_w;
@@ -382,7 +350,7 @@ namespace MathsEx
                     const auto im = y0 + array_y * set_step_y;
                     const Complex<RealType> c(re, im);
 
-                    const bool escaped = anti_buddha ? false : mandelbrot_set::calculate_point(c,  max_iter) >= max_iter;
+                    const bool escaped = anti_buddha ? false : kernel_amp::calculate_point(c,  max_iter) >= max_iter;
                     if (!escaped)
                     {
                         unsigned iters = 0;
