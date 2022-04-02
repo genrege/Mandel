@@ -99,6 +99,7 @@
     <ClInclude Include="cached_memory.h" />
     <ClInclude Include="Complex.h" />
     <ClInclude Include="fractal.h" />
+    <ClInclude Include="hdc_utils.h" />
     <ClInclude Include="kernel_amp.h" />
     <ClInclude Include="kernel_cpu.h" />
     <ClInclude Include="kernel_cuda.h" />
@@ -110,6 +111,7 @@
   <ItemGroup>
     <ClCompile Include="Complex.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="hdc_utils.cpp" />
     <ClCompile Include="kernel_amp.cpp" />
     <ClCompile Include="kernel_cpu.cpp" />
     <ClCompile Include="MandelbrotRendererAPI.cpp" />

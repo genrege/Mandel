@@ -28,7 +28,7 @@ namespace MandelbrotViewer
         [DllImport(@"MandelbrotRenderer.dll")] public static extern void calculateBuddha(int gpuIndex, bool antiBuddha, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, [MarshalAs(UnmanagedType.SafeArray)] out int[] result);
         [DllImport(@"MandelbrotRenderer.dll")] public static extern void paletteTransform(int gpuIndex, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.SafeArray)] int[] palette, [MarshalAs(UnmanagedType.SafeArray)] out int[] result);
         [DllImport(@"MandelbrotRenderer.dll")] public static extern void paletteTransform2(int gpuIndex, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.SafeArray)] int[] palette, [MarshalAs(UnmanagedType.SafeArray)] ref int[] result);
-        [DllImport(@"MandelbrotRenderer.dll")] public static extern void renderArrayToDevice(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input);
+        [DllImport(@"MandelbrotRenderer.dll")] public static extern void renderArrayToDisplay(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input);
         [DllImport(@"MandelbrotRenderer.dll")] public static extern void renderArrayToBitmap(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename);
         [DllImport(@"MandelbrotRenderer.dll")] public static extern void renderArrayToJPEG(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename);
     }

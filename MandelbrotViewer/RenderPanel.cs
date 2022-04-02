@@ -290,7 +290,7 @@ namespace MandelbrotViewer
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateMandelbrot(gpuIndex, useGpu, useCUDA, MaxIterations, Coord);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
+                        MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
                 case 5:
@@ -298,7 +298,7 @@ namespace MandelbrotViewer
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         MandelbrotAPI.CalculateJulia2(gpuIndex, JuliaSetX, JuliaSetY, useGpu, useCUDA, MaxIterations, Coord, ref calculation_data_);
                         MandelbrotAPI.PaletteTransform2(gpuIndex, calculation_data_, palette_, ref bitmap_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap_);
+                        MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap_);
                     }
                     break;
                 case 6:
@@ -306,7 +306,7 @@ namespace MandelbrotViewer
                         palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, false, MaxIterations, Coord);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
+                        MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
                 case 7:
@@ -314,7 +314,7 @@ namespace MandelbrotViewer
                         palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, true, MaxIterations, Coord);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
+                        MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
                 case 8:
@@ -322,7 +322,7 @@ namespace MandelbrotViewer
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateSpecial(gpuIndex, SpecialFunc, JuliaSetX, JuliaSetY, useGpu, MaxIterations, Coord);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
-                        MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
+                        MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
             }

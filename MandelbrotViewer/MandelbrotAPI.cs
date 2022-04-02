@@ -172,9 +172,9 @@ namespace MandelbrotViewer
             return palette;
         }
 
-        public static void RenderArrayToDevice(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input)
+        public static void RenderArrayToDisplay(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input)
         {
-            MandelbrotDLLInterface.renderArrayToDevice(hdc, width, height, input);
+            MandelbrotDLLInterface.renderArrayToDisplay(hdc, width, height, input);
         }
 
         public static void RenderArrayToBitmap(IntPtr hdc, int width, int height, [MarshalAs(UnmanagedType.SafeArray)] int[] input, [MarshalAs(UnmanagedType.LPStr)] string filename)
