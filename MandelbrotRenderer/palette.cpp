@@ -2,7 +2,7 @@
 
 namespace MathsEx
 {
-void iteration_palette::apply(unsigned max_iterations, const cache_memory<unsigned>& data, cache_memory<rgb>& bmp)
+void iteration_palette::apply(unsigned max_iterations, const cache_memory<unsigned>& data, cache_memory<rgb>& bmp, unsigned offset)
 {
     if (palette_.allocate(max_iterations + 1))
     {
@@ -25,7 +25,8 @@ void iteration_palette::apply(unsigned max_iterations, const cache_memory<unsign
     #pragma omp         parallel for
     for (int i = 0; i < static_cast<int>(data.size()); ++i)
     {
-        bmp[i] = palette_[data[i]];
+        unsigned index = data[i] != max_iterations ? (data[i] + offset) % ( max_iterations) : data[i];
+        bmp[i] = palette_[index];
     }
 }
 }

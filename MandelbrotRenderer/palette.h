@@ -21,7 +21,7 @@ class iteration_palette
 public:
     iteration_palette() = default;
 
-    void apply(unsigned max_iterations, const cache_memory<unsigned>& data, cache_memory<rgb>& bmp);
+    void apply(unsigned max_iterations, const cache_memory<unsigned>& data, cache_memory<rgb>& bmp, unsigned offset = 0);
 
 private:
     cache_memory<rgb> palette_;

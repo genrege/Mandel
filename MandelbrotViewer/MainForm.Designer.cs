@@ -59,6 +59,7 @@
             this.txtMouseCoords = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.nudPaletteOffset = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplitter)).BeginInit();
             this.mainSplitter.Panel1.SuspendLayout();
             this.mainSplitter.SuspendLayout();
@@ -68,6 +69,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.txtMaxIterations)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.upDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudPaletteOffset)).BeginInit();
             this.SuspendLayout();
             // 
             // mainSplitter
@@ -97,6 +99,7 @@
             // SplitControlContainer.Panel1
             // 
             this.SplitControlContainer.Panel1.BackColor = System.Drawing.Color.Black;
+            this.SplitControlContainer.Panel1.Controls.Add(this.nudPaletteOffset);
             this.SplitControlContainer.Panel1.Controls.Add(this.txtMaxIterations);
             this.SplitControlContainer.Panel1.Controls.Add(this.checkLoop);
             this.SplitControlContainer.Panel1.Controls.Add(this.btnLoadRec);
@@ -422,6 +425,15 @@
             this.timer1.Interval = 1;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // nudPaletteOffset
+            // 
+            this.nudPaletteOffset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.nudPaletteOffset.Location = new System.Drawing.Point(282, 57);
+            this.nudPaletteOffset.Name = "nudPaletteOffset";
+            this.nudPaletteOffset.Size = new System.Drawing.Size(56, 20);
+            this.nudPaletteOffset.TabIndex = 28;
+            this.nudPaletteOffset.ValueChanged += new System.EventHandler(this.nudPaletteOffset_ValueChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -442,6 +454,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.txtMaxIterations)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.upDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudPaletteOffset)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -477,6 +490,7 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.CheckBox checkLoop;
         private System.Windows.Forms.NumericUpDown txtMaxIterations;
+        private System.Windows.Forms.NumericUpDown nudPaletteOffset;
     }
 }
 

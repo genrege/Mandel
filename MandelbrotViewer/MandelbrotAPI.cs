@@ -15,14 +15,14 @@ namespace MandelbrotViewer
             MandelbrotDLLInterface.GPU(ref gpus);
         }
 
-        public static void RenderBasic(int gpuIndex, IntPtr hdc, bool gpu, bool cuda, int maxIterations, CoordinateSpace cspace)
+        public static void RenderBasic(int gpuIndex, IntPtr hdc, bool gpu, bool cuda, int maxIterations, CoordinateSpace cspace, int palette_offset)
         {
-            MandelbrotDLLInterface.renderMandelbrot(gpuIndex, hdc, gpu, cuda, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
+            MandelbrotDLLInterface.renderMandelbrot(gpuIndex, hdc, gpu, cuda, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, palette_offset);
         }
 
-        public static void RenderJulia(int gpuIndex, IntPtr hdc, bool gpu, bool cuda, int maxIterations, double re, double im, CoordinateSpace cspace)
+        public static void RenderJulia(int gpuIndex, IntPtr hdc, bool gpu, bool cuda, int maxIterations, double re, double im, CoordinateSpace cspace, int palette_offset)
         {
-            MandelbrotDLLInterface.renderJulia(gpuIndex, hdc, gpu, cuda, maxIterations, re, im, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
+            MandelbrotDLLInterface.renderJulia(gpuIndex, hdc, gpu, cuda, maxIterations, re, im, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, palette_offset);
         }
 
         public static void RenderBuddha(int gpuIndex, IntPtr hdc, int maxIterations, CoordinateSpace cspace)
@@ -35,24 +35,24 @@ namespace MandelbrotViewer
             MandelbrotDLLInterface.renderBuddha(gpuIndex, hdc, true, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
         }
 
-        public static void SaveBitmapToFile(int gpuIndex, IntPtr hdc, int maxIterations, CoordinateSpace cspace, string filename)
+        public static void SaveBitmapToFile(int gpuIndex, IntPtr hdc, int maxIterations, CoordinateSpace cspace, int palette_offset, string filename)
         {
-            MandelbrotDLLInterface.saveMandelbrotBitmap(gpuIndex, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, filename);
+            MandelbrotDLLInterface.saveMandelbrotBitmap(gpuIndex, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, palette_offset, filename);
         }
 
-        public static void SaveJPGToFile(int gpuIndex, IntPtr hdc, int maxIterations, CoordinateSpace cspace, string filename)
+        public static void SaveJPGToFile(int gpuIndex, IntPtr hdc, int maxIterations, CoordinateSpace cspace, int palette_offset, string filename)
         {
-            MandelbrotDLLInterface.saveMandelbrotJPG(gpuIndex, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, filename);
+            MandelbrotDLLInterface.saveMandelbrotJPG(gpuIndex, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, palette_offset, filename);
         }
 
-        public static void SaveJuliaBitmapToFile(int gpuIndex, double re, double im, IntPtr hdc, int maxIterations, CoordinateSpace cspace, string filename)
+        public static void SaveJuliaBitmapToFile(int gpuIndex, double re, double im, IntPtr hdc, int maxIterations, CoordinateSpace cspace, int palette_offset, string filename)
         {
-            MandelbrotDLLInterface.saveJuliaBitmap(gpuIndex, re, im, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, filename);
+            MandelbrotDLLInterface.saveJuliaBitmap(gpuIndex, re, im, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, palette_offset, filename);
         }
 
-        public static void SaveJuliaJPGToFile(int gpuIndex, double re, double im, IntPtr hdc, int maxIterations, CoordinateSpace cspace, string filename)
+        public static void SaveJuliaJPGToFile(int gpuIndex, double re, double im, IntPtr hdc, int maxIterations, CoordinateSpace cspace, int palette_offset, string filename)
         {
-            MandelbrotDLLInterface.saveJuliaJPG(gpuIndex, re, im, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, filename);
+            MandelbrotDLLInterface.saveJuliaJPG(gpuIndex, re, im, hdc, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, palette_offset, filename);
         }
 
         public static void SaveBuddhaBitmapToFile(int gpuIndex, IntPtr hdc, int maxIterations, CoordinateSpace cspace, string filename)
@@ -93,9 +93,9 @@ namespace MandelbrotViewer
             return result;
         }
 
-        public static int[] CalculateJulia2(int gpuIndex, double re, double im, bool gpu, int maxIterations, CoordinateSpace cspace, ref int[] result)
+        public static int[] CalculateJulia2(int gpuIndex, double re, double im, bool gpu, bool cuda, int maxIterations, CoordinateSpace cspace, ref int[] result)
         {
-            MandelbrotDLLInterface.calculateJulia2(gpuIndex, re, im, gpu, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, ref result);
+            MandelbrotDLLInterface.calculateJulia2(gpuIndex, re, im, gpu, cuda, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, ref result);
 
             return result;
         }

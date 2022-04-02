@@ -58,13 +58,6 @@ namespace MathsEx
             }
         }
 
-        void CalculateJuliaCUDA(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
-        {
-            m_cuda.render_julia(m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, k.Re(), k.Im(), maxIters, m_arr);
-
-            setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_julia);
-        }
 
         void CalculateBuddha(const accelerator_view& v, bool anti_buddha, const unsigned maxIters) restrict(cpu)
         {
@@ -72,70 +65,6 @@ namespace MathsEx
 
             setPaletteBuddha(1 + maxIters, m_density, m_wx * m_wy);
             gpuPaletteKernel(v, m_wx * m_wy, m_density, m_bmp, maxIters, m_palette_buddha);
-        }
-
-        void CalculateJulia(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
-        {
-            m_arr.allocate(m_wx * m_wy);
-            gpuJuliaKernel(v, k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
-
-            setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_julia);
-        }
-
-        void CalculateJuliaCPU(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
-        {
-            m_arr.allocate(m_wx * m_wy);
-            cpuJuliaKernel(k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
-
-            setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_julia);
-        }
-
-        void setPalette(size_t size)
-        {
-            if (m_palette_mbrot.allocate(size))
-            {
-                const float scale = 6.3f / size;
-                #pragma omp parallel for
-                for (int i = 0; i < size; ++i)
-                {
-                    m_palette_mbrot[i].r = static_cast<unsigned char>(sin(scale * i + 3) * 127 + 128);
-                    m_palette_mbrot[i].g = static_cast<unsigned char>(sin(scale * i + 5) * 127 + 128);
-                    m_palette_mbrot[i].b = static_cast<unsigned char>(sin(scale * i + 1) * 127 + 128);
-                }
-            }
-        }
-
-        void setPaletteJulia(size_t size)
-        {
-            if (m_palette_julia.allocate(size))
-            {
-                const double scale = 1.0 / size;
-                for (size_t i = 0; i < size; ++i)
-                {
-                    /*
-                    const double s1 = double(i * 1) / size;
-                    const double s2 = double(i / 2) / size;
-                    const double s3 = double(i * 5 / 2) / size;
-
-                    const double f = min(1.0, (1 - pow(s1 - 1, 2)));
-                    const double g = min(1.0, (1 - pow(s2 - 1, 4)));
-                    const double h = min(1.0, (1 - pow(s3 - 1, 6)));
-                    */
-                    const double s1 = double(i * 3) * scale;
-                    const double s2 = double(i * 5) * scale;
-                    const double s3 = double(i * 1) * scale;
-
-                    const double f = min(1.0, (1 - sin(s1 - 1)));
-                    const double g = min(1.0, (1 - sin(s2 - 1)));
-                    const double h = min(1.0, (1 - sin(s3 - 1)));
-
-                    m_palette_julia[i].r = char(255 * f);
-                    m_palette_julia[i].g = char(255 * g);
-                    m_palette_julia[i].b = char(255 * h);
-                }
-            }
         }
 
         void setPaletteBuddha(size_t size, unsigned* density, unsigned size_density)
@@ -166,37 +95,6 @@ namespace MathsEx
                     if (i > 24)
                         m_palette_buddha[i].b = char(255 * h);
                 }
-            }
-        }
-
-        static void gpuJuliaKernelCUDA(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
-        {
-            mbrot_cuda cuda;
-            cuda.render_julia(display_w, display_h, x0, x1, y0, y1, k.Re(), k.Im(), max_iter, iters);
-        }
-
-        static void cpuJuliaKernel(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
-        {
-            const int num_points = display_w * display_h;
-
-            const auto set_width = x1 - x0;
-            const auto set_height = y1 - y0;
-
-            const auto set_step_x = set_width / double(display_w);
-            const auto set_step_y = set_height / double(display_h);
-
-            #pragma omp parallel for
-            for (int i = 0; i < num_points; ++i)
-            {
-                const auto array_x = i % display_w;
-                const auto array_y = display_h - i / display_w;
-
-                const auto re = x0 + array_x * set_step_x;
-                const auto im = y0 + array_y * set_step_y;
-                const Complex<RealType> c(re, im);
-
-                const auto point_value = CalculateJulia(c, k, max_iter);
-                iters[i] = point_value;
             }
         }
 
@@ -281,37 +179,6 @@ namespace MathsEx
                     case 13: mandelbrotResult[idx] = CalculateSpecial_13(c, k, max_iter); break;
                     case 14: mandelbrotResult[idx] = CalculateSpecial_14(c, k, max_iter); break;
                     }
-                });
-            mandelbrotResult.synchronize();
-            mandelbrotResult.discard_data();
-        }
-
-        static void gpuJuliaKernel(const accelerator_view& v, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
-        {
-            const auto num_points = display_w * display_h;
-
-            const auto set_width = x1 - x0;
-            const auto set_height = y1 - y0;
-
-            const auto set_step_x = set_width / double(display_w);
-            const auto set_step_y = set_height / double(display_h);
-
-            concurrency::extent<1> e(num_points);
-            concurrency::array_view<unsigned, 1> mandelbrotResult(e, iters);
-
-
-            concurrency::parallel_for_each(v, mandelbrotResult.extent,
-                [k, display_w, display_h, x0, y0, set_step_x, set_step_y, max_iter, mandelbrotResult](index<1> idx) restrict(amp, cpu)
-                {
-                    const auto array_x = idx[0] % display_w;
-                    const auto array_y = display_h - idx[0] / display_w;
-
-                    const auto re = x0 + array_x * set_step_x;
-                    const auto im = y0 + array_y * set_step_y;
-                    const Complex<RealType> c(re, im);
-
-                    const auto point_value = CalculateJulia(c, k, max_iter);
-                    mandelbrotResult[idx] = point_value;
                 });
             mandelbrotResult.synchronize();
             mandelbrotResult.discard_data();
@@ -402,20 +269,6 @@ namespace MathsEx
             #pragma omp parallel for
             for (int i = 0; i < size; ++i)
                 bmp[i] = *((unsigned*)palette + iters[i]);
-        }
-
-        inline static unsigned CalculateJulia(const Complex<RealType>& c, const Complex<RealType>& k, unsigned maxIters) restrict(amp, cpu)
-        {
-            unsigned iters = 0;
-
-            Complex<RealType> z = c;
-            while (iters < maxIters && SumSquares(z) <= 4.0)
-            {
-                z = z.squared() + k;
-                ++iters;
-            }
-
-            return iters;
         }
 
         inline static unsigned CalculateSpecial_0(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
@@ -666,16 +519,10 @@ namespace MathsEx
         unsigned m_wy;
 
         //Runtime storage
-        cache_memory<rgb>       m_palette_mbrot;
-        cache_memory<rgb>       m_palette_julia;
         cache_memory<rgb>       m_palette_buddha;
         cache_memory<unsigned>  m_arr;
         cache_memory<unsigned>  m_bmp;
         cache_memory<unsigned>  m_density;
-
-        mbrot_cuda m_cuda;
-
-        mandelbrot_set mbrot_;
     };
 }
 
