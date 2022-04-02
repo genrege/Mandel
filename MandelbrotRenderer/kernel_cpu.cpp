@@ -14,7 +14,7 @@ namespace MathsEx
             double zi2 = zi * zi;
 
             unsigned iter = 0;
-            while (iter < max_iter && (zr2 + zi2) < 4.0)
+            while (iter < max_iter && (zr2 + zi2) <= 4.0)
             {
                 zi = (zr + zr) * zi + ci;
                 zr = zr2 - zi2 + cr;
