@@ -9,6 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="kernels">
+      <UniqueIdentifier>{b47cd967-10fb-4c33-90a4-371cbdf473e8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MandelbrotRendererAPI.h">
@@ -32,14 +35,14 @@
     <ClInclude Include="palette.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kernel_cpu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="kernel_amp.h">
-      <Filter>Header Files</Filter>
+      <Filter>kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel_cpu.h">
+      <Filter>kernels</Filter>
     </ClInclude>
     <ClInclude Include="kernel_cuda.h">
-      <Filter>Header Files</Filter>
+      <Filter>kernels</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -52,11 +55,14 @@
     <ClCompile Include="palette.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kernel_cpu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Complex.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel_cpu.cpp">
+      <Filter>kernels</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel_amp.cpp">
+      <Filter>kernels</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -110,6 +110,7 @@
   <ItemGroup>
     <ClCompile Include="Complex.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="kernel_amp.cpp" />
     <ClCompile Include="kernel_cpu.cpp" />
     <ClCompile Include="MandelbrotRendererAPI.cpp" />
     <ClCompile Include="palette.cpp" />
