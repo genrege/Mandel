@@ -46,17 +46,14 @@ namespace MandelbrotViewer
             string[] gpus = new string[100];
             MandelbrotDLLInterface.GPU(ref gpus);
 
-            int bestGPU = 0;
             foreach (var gpu in gpus)
             {
                 if (gpu != "CPU accelerator")
                     listGPU.Items.Add(gpu);
-                if (gpu.Contains("CPU"))
-                    bestGPU = listGPU.Items.Count - 1;
             }
             listGPU.Items.Add("CPU");
 
-            listGPU.SelectedIndex = bestGPU;
+            listGPU.SelectedIndex = 0;
             renderPanel.useCUDA = listGPU.Text.Contains("CUDA");
 
             renderPanel.useGpu = listGPU.Text != "CPU";
@@ -249,9 +246,9 @@ namespace MandelbrotViewer
                 if (System.IO.Path.GetExtension(saveBmpDialog.FileName) == ".jpg")
                 {
                     if (renderPanel.FractalSetIndex == 0)
-                        MandelbrotAPI.SaveJPGToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveJPGToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, Decimal.ToInt32(nudPaletteOffset.Value), saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 1)
-                        MandelbrotAPI.SaveJuliaJPGToFile(gpuIndex, renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveJuliaJPGToFile(gpuIndex, renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, Decimal.ToInt32(nudPaletteOffset.Value), saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 2)
                         MandelbrotAPI.SaveBuddhaJPGToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 3)
@@ -295,9 +292,9 @@ namespace MandelbrotViewer
                 else
                 {
                     if (renderPanel.FractalSetIndex == 0)
-                        MandelbrotAPI.SaveBitmapToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveBitmapToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, Decimal.ToInt32(nudPaletteOffset.Value), saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 1)
-                        MandelbrotAPI.SaveJuliaBitmapToFile(gpuIndex, renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
+                        MandelbrotAPI.SaveJuliaBitmapToFile(gpuIndex, renderPanel.JuliaSetX, renderPanel.JuliaSetY, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, Decimal.ToInt32(nudPaletteOffset.Value), saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 2)
                         MandelbrotAPI.SaveBuddhaBitmapToFile(gpuIndex, this.CreateGraphics().GetHdc(), int.Parse(txtMaxIterations.Text), extCoord, saveBmpDialog.FileName);
                     else if (renderPanel.FractalSetIndex == 3)
@@ -487,9 +484,26 @@ namespace MandelbrotViewer
         {
             trackBarMaxIterations.Value = (int)txtMaxIterations.Value;
             renderPanel.MaxIterations = trackBarMaxIterations.Value;
+            nudPaletteOffset.Maximum = trackBarMaxIterations.Value;
+            nudPaletteOffset.Increment = Math.Max(1, trackBarMaxIterations.Value / 256);
+
             renderPanel.Invalidate();
         }
 
+
+        private void nudPaletteOffset_ValueChanged(object sender, EventArgs e)
+        {
+            int offset = 0;
+            if (int.TryParse(nudPaletteOffset.Text, out offset))
+            {
+                renderPanel.PaletteOffset = int.Parse(nudPaletteOffset.Text);
+                renderPanel.Refresh();
+            }
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+        }
     }
 }
 

@@ -8,6 +8,16 @@ class complex
 public:
     __device__ complex() : re_(0.0), im_(0.0) {}
     __device__ complex(double re, double im) : re_(re), im_(im) {}
+    __device__ complex(const complex& rhs) : re_(rhs.re_), im_(rhs.im_) {}
+    __device__ complex& operator=(const complex& rhs)
+    {
+        if (this != &rhs)
+        {
+            re_ = rhs.re_;
+            im_ = rhs.im_;
+        }
+        return *this;
+    }
 
     __device__ double re() const { return re_; }
     __device__ double im() const { return im_; }
@@ -31,9 +41,7 @@ public:
 
     __device__ complex& operator*=(const complex& r)
     {
-        double tre = re_;
-        re_ = re_ * r.re_ - im_ * r.im_;
-        im_ = im_ * tre + tre * r.im_;
+        *this = complex(re_ * r.re_ - im_ * r.im_, im_ * re_ + re_ * r.im_);
         return *this;
     }
     __device__ double sum_squares() const
@@ -59,7 +67,7 @@ __global__ void kernel_mbrot2(double x0, double x1, double y0, double y1, int wx
     complex z;
 
     int iter = 0;
-    while (iter < max_iter && (z.sum_squares()) < 4.0)
+    while (iter < max_iter && (z.sum_squares()) <= 4.0)
     {
         z *= z;
         z += c;
@@ -88,7 +96,7 @@ __global__ void kernel_mbrot(double x0, double x1, double y0, double y1, int wx,
     double zi2 = zi * zi;
     
     int iter = 0;
-    while (iter < max_iter && (zr2 + zi2) < 4.0)
+    while (iter < max_iter && (zr2 + zi2) <= 4.0)
     {
         zi = (zr + zr) * zi + ci;
         zr = zr2 - zi2 + cr;

@@ -35,6 +35,9 @@ namespace MandelbrotViewer
         public int FractalSetIndex { get; set; }
         public Point LastMouseMoveLocation { get; set; }
 
+        public int PaletteOffset { get; set; }
+        public bool PaletteDefer { get; set; }
+
 
         public bool useGpu { get; set; }
         public bool displayFPS { get; set; }
@@ -60,6 +63,7 @@ namespace MandelbrotViewer
             public int MaxIterations { get; set; }
             public int FractalSetIndex { get; set; }
             public Point LastMouseMoveLocation { get; set; }
+            public int PaletteOffset { get; set; }
 
             public override string ToString()
             {
@@ -81,6 +85,7 @@ namespace MandelbrotViewer
                 output.Append(LastMouseMoveLocation.Y).Append(",");
                 output.Append(useGPU).Append(",");
                 output.Append(useCUDA).Append(",");
+                output.Append(PaletteOffset).Append(",");
                 output.AppendLine();
 
                 return output.ToString();
@@ -93,7 +98,7 @@ namespace MandelbrotViewer
                 r.Coord = CoordinateSpace.FromString(coord_line);
 
                 var line_toks = line.Split(',');
-                if (line_toks.Length != 15)
+                if (line_toks.Length != 16)
                     throw new SystemException("Failed to parse RecordingItem.FromString");
 
                 r.gpuIndex = int.Parse(line_toks[0]);
@@ -109,6 +114,7 @@ namespace MandelbrotViewer
                 r.LastMouseMoveLocation = new Point(int.Parse(line_toks[10]), int.Parse(line_toks[11]));
                 r.useGPU = bool.Parse(line_toks[12]);
                 r.useCUDA = bool.Parse(line_toks[13]);
+                r.PaletteOffset = int.Parse(line_toks[14]);
 
                 return r;
             }
@@ -123,6 +129,7 @@ namespace MandelbrotViewer
             Coord.Align(-1.0, 0.0, Width / 2, Height / 2);
             displayFPS = true;
             Recording = false;
+            PaletteOffset = 0;
         }
 
         protected override void OnPaintBackground(PaintEventArgs e)
@@ -228,9 +235,13 @@ namespace MandelbrotViewer
         private void DoZoom(bool into, double px, double py, double factor)
         {
             if (into)
+            {
                 Zoom(1.0 / factor, px, py);
+            }
             else
+            {
                 Zoom(factor, px, py);
+            }
 
             Render();
 
@@ -263,10 +274,10 @@ namespace MandelbrotViewer
             switch (FractalSetIndex)
             {
                 case 0:
-                    MandelbrotAPI.RenderBasic(gpuIndex, hdc, useGpu, useCUDA, MaxIterations, Coord);
+                    MandelbrotAPI.RenderBasic(gpuIndex, hdc, useGpu, useCUDA, MaxIterations, Coord, PaletteOffset);
                     break;
                 case 1:
-                    MandelbrotAPI.RenderJulia(gpuIndex, hdc, useGpu, useCUDA, MaxIterations, JuliaSetX, JuliaSetY, Coord);
+                    MandelbrotAPI.RenderJulia(gpuIndex, hdc, useGpu, useCUDA, MaxIterations, JuliaSetX, JuliaSetY, Coord, PaletteOffset);
                     break;
                 case 2:
                     MandelbrotAPI.RenderBuddha(gpuIndex, hdc, MaxIterations, Coord);
@@ -285,7 +296,7 @@ namespace MandelbrotViewer
                 case 5:
                     {
                         palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
-                        MandelbrotAPI.CalculateJulia2(gpuIndex, JuliaSetX, JuliaSetY, useGpu, MaxIterations, Coord, ref calculation_data_);
+                        MandelbrotAPI.CalculateJulia2(gpuIndex, JuliaSetX, JuliaSetY, useGpu, useCUDA, MaxIterations, Coord, ref calculation_data_);
                         MandelbrotAPI.PaletteTransform2(gpuIndex, calculation_data_, palette_, ref bitmap_);
                         MandelbrotAPI.RenderArrayToDevice(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap_);
                     }
@@ -366,6 +377,7 @@ namespace MandelbrotViewer
                 item.useGPU = useGpu;
                 item.useCUDA = useCUDA;
                 item.gpuIndex = gpuIndex;
+                item.PaletteOffset = PaletteOffset;
 
                 RecordedItems.Add(item);
             }
@@ -409,6 +421,7 @@ namespace MandelbrotViewer
                 LastMouseMoveLocation = item.LastMouseMoveLocation;
                 //useGpu = item.useGPU;
                 //gpuIndex = item.gpuIndex;
+                PaletteOffset = item.PaletteOffset;
 
                 Coord.UpdateState();
                 return pos + 1;

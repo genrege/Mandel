@@ -32,7 +32,7 @@ public:
 		releaser_(memory_);
 	}
 
-	bool reserve(size_t size)
+	bool allocate(size_t size)
 	{
 		if (size != size_)
 		{

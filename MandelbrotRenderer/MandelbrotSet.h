@@ -8,6 +8,7 @@
 #include "Complex.h"
 #include "cached_memory.h"
 #include "fractal.h"
+#include "palette.h"
 
 #include "../MandelbrotRendererCUDA/MandelbrotSetCUDA.h"
 
@@ -19,11 +20,9 @@ using namespace precise_math;
 
 namespace MathsEx
 {
-    template <class RealType> class MandelbrotSet
+    class MandelbrotSet
     {
     public:
-
-        typedef RealType FloatingPointType;
 
         const unsigned* bmp() const { return (unsigned*)m_bmp.access(); }
         const unsigned data_size() const { return m_wx * m_wy; }
@@ -36,7 +35,7 @@ namespace MathsEx
         {
         }
 
-        void SetScale(RealType x0, RealType x1, RealType y0, RealType y1, unsigned wx, unsigned wy) restrict(cpu)
+        void SetScale(double x0, double x1, double y0, double y1, unsigned wx, unsigned wy) restrict(cpu)
         {
             m_x0 = x0;
             m_x1 = x1;
@@ -51,46 +50,12 @@ namespace MathsEx
                 m_wx = wx;
                 m_wy = wy;
 
-                m_arr.reserve(m_wx * m_wy);
-                m_bmp.reserve(m_wx * m_wy);
-                m_density.reserve(m_wx * m_wy);
+                m_arr.allocate(m_wx * m_wy);
+                m_bmp.allocate(m_wx * m_wy);
+                m_density.allocate(m_wx * m_wy);
             }
         }
 
-        void CalculateSetCPU(const accelerator_view& v, const unsigned max_iterations)
-        {
-            mbrot_.set_scale(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy);
-            mbrot_.calculate_set_cpu(max_iterations);
-
-            setPalette(1 + max_iterations);
-            gpuPaletteKernel(v, m_wx * m_wy, mbrot_.data(), m_bmp, max_iterations, m_palette_mbrot);
-        }
-
-        void CalculateSet(const accelerator_view& v, const unsigned max_iterations)
-        {
-            mbrot_.set_scale(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy);
-            mbrot_.calculate_set_amp(v, max_iterations);
-
-            setPalette(1 + max_iterations);
-            gpuPaletteKernel(v, m_wx * m_wy, mbrot_.data(), m_bmp, max_iterations, m_palette_mbrot);
-        }
-
-        void CalculateSetCUDA(const accelerator_view& v, const unsigned max_iterations)
-        {
-            mbrot_.set_scale(m_x0, m_x1, m_y0, m_y1, m_wx, m_wy);
-            mbrot_.calculate_set_cuda(max_iterations);
-
-            setPalette(1 + max_iterations);
-            gpuPaletteKernel(v, m_wx * m_wy, mbrot_.data(), m_bmp, max_iterations, m_palette_mbrot);
-        }
-
-        void CalculateJuliaCUDA(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
-        {
-            m_cuda.render_julia(m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, k.Re(), k.Im(), maxIters, m_arr);
-
-            setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_julia);
-        }
 
         void CalculateBuddha(const accelerator_view& v, bool anti_buddha, const unsigned maxIters) restrict(cpu)
         {
@@ -100,73 +65,9 @@ namespace MathsEx
             gpuPaletteKernel(v, m_wx * m_wy, m_density, m_bmp, maxIters, m_palette_buddha);
         }
 
-        void CalculateJulia(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
-        {
-            m_arr.reserve(m_wx * m_wy);
-            gpuJuliaKernel(v, k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
-
-            setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_julia);
-        }
-
-        void CalculateJuliaCPU(const accelerator_view& v, const Complex<RealType>& k, const unsigned maxIters) restrict(cpu)
-        {
-            m_arr.reserve(m_wx * m_wy);
-            cpuJuliaKernel(k, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_arr);
-
-            setPaletteJulia(1 + maxIters);
-            gpuPaletteKernel(v, m_wx * m_wy, m_arr, m_bmp, maxIters, m_palette_julia);
-        }
-
-        void setPalette(size_t size)
-        {
-            if (m_palette_mbrot.reserve(size))
-            {
-                const float scale = 6.3f / size;
-                #pragma omp parallel for
-                for (int i = 0; i < size; ++i)
-                {
-                    m_palette_mbrot[i].r = static_cast<unsigned char>(sin(scale * i + 3) * 127 + 128);
-                    m_palette_mbrot[i].g = static_cast<unsigned char>(sin(scale * i + 5) * 127 + 128);
-                    m_palette_mbrot[i].b = static_cast<unsigned char>(sin(scale * i + 1) * 127 + 128);
-                }
-            }
-        }
-
-        void setPaletteJulia(size_t size)
-        {
-            if (m_palette_julia.reserve(size))
-            {
-                const double scale = 1.0 / size;
-                for (size_t i = 0; i < size; ++i)
-                {
-                    /*
-                    const double s1 = double(i * 1) / size;
-                    const double s2 = double(i / 2) / size;
-                    const double s3 = double(i * 5 / 2) / size;
-
-                    const double f = min(1.0, (1 - pow(s1 - 1, 2)));
-                    const double g = min(1.0, (1 - pow(s2 - 1, 4)));
-                    const double h = min(1.0, (1 - pow(s3 - 1, 6)));
-                    */
-                    const double s1 = double(i * 3) * scale;
-                    const double s2 = double(i * 5) * scale;
-                    const double s3 = double(i * 1) * scale;
-
-                    const double f = min(1.0, (1 - sin(s1 - 1)));
-                    const double g = min(1.0, (1 - sin(s2 - 1)));
-                    const double h = min(1.0, (1 - sin(s3 - 1)));
-
-                    m_palette_julia[i].r = char(255 * f);
-                    m_palette_julia[i].g = char(255 * g);
-                    m_palette_julia[i].b = char(255 * h);
-                }
-            }
-        }
-
         void setPaletteBuddha(size_t size, unsigned* density, unsigned size_density)
         {
-            if (m_palette_buddha.reserve(size))
+            if (m_palette_buddha.allocate(size))
             {
                 unsigned max_density = 0;
                 for (size_t i = 0; i < size_density; ++i)
@@ -195,19 +96,7 @@ namespace MathsEx
             }
         }
 
-        static void gpuMandelbrotKernelCUDA(unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned int max_iters, unsigned* iters)
-        {
-            mbrot_cuda cuda;
-            cuda.render_mbrot(display_w, display_h, x0, x1, y0, y1, max_iters, iters);
-        }
-
-        static void gpuJuliaKernelCUDA(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
-        {
-            mbrot_cuda cuda;
-            cuda.render_julia(display_w, display_h, x0, x1, y0, y1, k.Re(), k.Im(), max_iter, iters);
-        }
-
-        static void cpuJuliaKernel(const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        static void cpuSpecialKernel(int func, const Complex& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* mandelbrotResult)
         {
             const int num_points = display_w * display_h;
 
@@ -225,32 +114,7 @@ namespace MathsEx
 
                 const auto re = x0 + array_x * set_step_x;
                 const auto im = y0 + array_y * set_step_y;
-                const Complex<RealType> c(re, im);
-
-                const auto point_value = CalculateJulia(c, k, max_iter);
-                iters[i] = point_value;
-            }
-        }
-
-        static void cpuSpecialKernel(int func, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* mandelbrotResult)
-        {
-            const int num_points = display_w * display_h;
-
-            const auto set_width = x1 - x0;
-            const auto set_height = y1 - y0;
-
-            const auto set_step_x = set_width / double(display_w);
-            const auto set_step_y = set_height / double(display_h);
-
-            #pragma omp parallel for
-            for (int i = 0; i < num_points; ++i)
-            {
-                const auto array_x = i % display_w;
-                const auto array_y = display_h - i / display_w;
-
-                const auto re = x0 + array_x * set_step_x;
-                const auto im = y0 + array_y * set_step_y;
-                const Complex<RealType> c(re, im);
+                const Complex c(re, im);
 
                 switch(func){
                 case  0: mandelbrotResult[i] = CalculateSpecial_0(c, k, max_iter); break;
@@ -273,7 +137,7 @@ namespace MathsEx
         }
 
 
-        static void gpuSpecialKernel(const accelerator_view& v, int func, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        static void gpuSpecialKernel(const accelerator_view& v, int func, const Complex& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
             const auto num_points = display_w * display_h;
 
@@ -294,7 +158,7 @@ namespace MathsEx
 
                     const auto re = x0 + array_x * set_step_x;
                     const auto im = y0 + array_y * set_step_y;
-                    const Complex<RealType> c(re, im);
+                    const Complex c(re, im);
 
                     switch(func){
                     case  0: mandelbrotResult[idx] = CalculateSpecial_0(c, k, max_iter); break;
@@ -313,37 +177,6 @@ namespace MathsEx
                     case 13: mandelbrotResult[idx] = CalculateSpecial_13(c, k, max_iter); break;
                     case 14: mandelbrotResult[idx] = CalculateSpecial_14(c, k, max_iter); break;
                     }
-                });
-            mandelbrotResult.synchronize();
-            mandelbrotResult.discard_data();
-        }
-
-        static void gpuJuliaKernel(const accelerator_view& v, const Complex<RealType>& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
-        {
-            const auto num_points = display_w * display_h;
-
-            const auto set_width = x1 - x0;
-            const auto set_height = y1 - y0;
-
-            const auto set_step_x = set_width / double(display_w);
-            const auto set_step_y = set_height / double(display_h);
-
-            concurrency::extent<1> e(num_points);
-            concurrency::array_view<unsigned, 1> mandelbrotResult(e, iters);
-
-
-            concurrency::parallel_for_each(v, mandelbrotResult.extent,
-                [k, display_w, display_h, x0, y0, set_step_x, set_step_y, max_iter, mandelbrotResult](index<1> idx) restrict(amp, cpu)
-                {
-                    const auto array_x = idx[0] % display_w;
-                    const auto array_y = display_h - idx[0] / display_w;
-
-                    const auto re = x0 + array_x * set_step_x;
-                    const auto im = y0 + array_y * set_step_y;
-                    const Complex<RealType> c(re, im);
-
-                    const auto point_value = CalculateJulia(c, k, max_iter);
-                    mandelbrotResult[idx] = point_value;
                 });
             mandelbrotResult.synchronize();
             mandelbrotResult.discard_data();
@@ -373,21 +206,21 @@ namespace MathsEx
             const double r_set_step_y = 1.0 / set_step_y;
 
             concurrency::parallel_for_each(v, e,
-                [anti_buddha, display_w, display_h, x0, y0, set_step_x, set_step_y, r_set_step_x, r_set_step_y, max_iter, edmap](index<1> idx) restrict(amp, cpu)
+                [anti_buddha, display_w, display_h, x0, y0, set_step_x, set_step_y, r_set_step_x, r_set_step_y, max_iter, edmap](index<1> idx) restrict(amp)
                 {
                     const auto array_x = idx[0] % display_w;
                     const auto array_y = display_h - idx[0] / display_w;
 
                     const auto re = x0 + array_x * set_step_x;
                     const auto im = y0 + array_y * set_step_y;
-                    const Complex<RealType> c(re, im);
+                    const Complex c(re, im);
 
-                    const bool escaped = anti_buddha ? false : mandelbrot_set::calculate_point(c,  max_iter) >= max_iter;
+                    const bool escaped = anti_buddha ? false : kernel_amp::calculate_point(re, im,  max_iter) >= max_iter;
                     if (!escaped)
                     {
                         unsigned iters = 0;
 
-                        Complex<RealType> z(0.0);
+                        Complex z(0.0);
                         while (iters < max_iter && SumSquares(z) <= 4.0)
                         {
                             z = z * z + c;
@@ -429,32 +262,11 @@ namespace MathsEx
                 });
         }
 
-        static void cpuPaletteKernel(unsigned size, unsigned* iters, unsigned* bmp, unsigned size_palette, rgb* palette)
-        {
-            #pragma omp parallel for
-            for (int i = 0; i < size; ++i)
-                bmp[i] = *((unsigned*)palette + iters[i]);
-        }
-
-        inline static unsigned CalculateJulia(const Complex<RealType>& c, const Complex<RealType>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_0(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<RealType> z = c;
-            while (iters < maxIters && SumSquares(z) <= 4.0)
-            {
-                z = z.squared() + k;
-                ++iters;
-            }
-
-            return iters;
-        }
-
-        inline static unsigned CalculateSpecial_0(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
-        {
-            unsigned iters = 0;
-
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 const auto& z2 = z * z;
@@ -468,11 +280,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_1(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_1(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 const auto& z2 = z * z;
@@ -484,11 +296,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_2(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_2(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(k);
+            Complex z(k);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z + c;
@@ -499,11 +311,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_3(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_3(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z * z * z + k;
@@ -514,11 +326,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_4(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_4(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z * z * z * z + k;
@@ -529,11 +341,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_5(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_5(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z * z * z * z * z + k;
@@ -544,11 +356,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_6(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_6(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = (z + z * z * z * z * z * z + z * z * z * z * z) / (z * z * z) + k;
@@ -559,11 +371,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_7(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_7(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z + Sin(z) + k;
@@ -574,11 +386,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_8(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_8(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z + Cos(z * k);
@@ -589,11 +401,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_9(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_9(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z + Cos(Sin(z + k));
@@ -604,11 +416,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_10(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_10(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * (z -k) * (z + k);
@@ -618,11 +430,11 @@ namespace MathsEx
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_11(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_11(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z + Tan(z + k);
@@ -632,11 +444,11 @@ namespace MathsEx
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_12(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_12(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z + Sqrt(k + z);
@@ -646,11 +458,11 @@ namespace MathsEx
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_13(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_13(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(k);
+            Complex z(k);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z + c;
@@ -660,11 +472,11 @@ namespace MathsEx
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_14(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_14(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex<double> z(c);
+            Complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z + c - k;
@@ -688,26 +500,20 @@ namespace MathsEx
 
     private:
         //Virtual dimensions
-        RealType m_x0;
-        RealType m_x1;
-        RealType m_y0;
-        RealType m_y1;
+        double m_x0;
+        double m_x1;
+        double m_y0;
+        double m_y1;
 
         //Display dimensions
         unsigned m_wx;
         unsigned m_wy;
 
         //Runtime storage
-        cache_memory<rgb>       m_palette_mbrot;
-        cache_memory<rgb>       m_palette_julia;
         cache_memory<rgb>       m_palette_buddha;
         cache_memory<unsigned>  m_arr;
         cache_memory<unsigned>  m_bmp;
         cache_memory<unsigned>  m_density;
-
-        mbrot_cuda m_cuda;
-
-        mandelbrot_set mbrot_;
     };
 }
 
