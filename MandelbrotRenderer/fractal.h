@@ -88,19 +88,19 @@ class julia_set : public fractal
 public:
     julia_set() = default;
 
-    void calculate_set_cpu(const Complex<double>& k, const unsigned max_iterations)
+    void calculate_set_cpu(const Complex& k, const unsigned max_iterations)
     {
         allocate_data();
         kernel_cpu::julia_kernel(wx(), wy(), x0(), x1(), y0(), y1(), k.Re(), k.Im(), max_iterations, data());
     }
 
-    void calculate_set_amp(const accelerator_view& v, const Complex<double>& k, const unsigned max_iterations)
+    void calculate_set_amp(const accelerator_view& v, const Complex& k, const unsigned max_iterations)
     {
         allocate_data();
         kernel_amp::julia_kernel(v, wx(), wy(), x0(), x1(), y0(), y1(), k.Re(), k.Im(), max_iterations, data());
     }
 
-    void calculate_set_cuda(const Complex<double>& k, const unsigned max_iterations)
+    void calculate_set_cuda(const Complex& k, const unsigned max_iterations)
     {
         kernel_cuda::julia_kernel(wx(), wy(), x0(), x1(), y0(), y1(), k.Re(), k.Im(), max_iterations, data());
     }

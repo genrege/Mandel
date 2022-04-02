@@ -12,10 +12,8 @@ namespace MathsEx
 {
     namespace kernel_amp
     {
-        unsigned calculate_point(const Complex<double>& c, unsigned max_iter) restrict(amp)
+        unsigned calculate_point(double cr, double ci, unsigned max_iter) restrict(amp)
         {
-            const double cr = c.Re();
-            const double ci = c.Im();
 
             double zr = 0.0;
             double zi = 0.0;
@@ -58,20 +56,19 @@ namespace MathsEx
 
                     const auto re = x0 + array_x * set_step_x;
                     const auto im = y0 + array_y * set_step_y;
-                    const Complex<double> c(re, im);
 
-                    const auto point_value = calculate_point(c, max_iter);
+                    const auto point_value = calculate_point(re, im, max_iter);
                     mandelbrotResult[idx] = point_value;
                 });
             mandelbrotResult.synchronize();
             mandelbrotResult.discard_data();
         }
 
-        inline static unsigned calculate_julia_point(const Complex<double>& c, const Complex<double>& k, unsigned maxIters) restrict(amp)
+        inline static unsigned calculate_julia_point(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp)
         {
             unsigned iters = 0;
 
-            Complex<double> z = c;
+            Complex z = c;
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z.squared() + k;
@@ -85,7 +82,7 @@ namespace MathsEx
         {
             const auto num_points = display_w * display_h;
 
-            const Complex<double> k(kr, ki);
+            const Complex k(kr, ki);
 
             const auto set_width = x1 - x0;
             const auto set_height = y1 - y0;
@@ -105,7 +102,7 @@ namespace MathsEx
 
                     const auto re = x0 + array_x * set_step_x;
                     const auto im = y0 + array_y * set_step_y;
-                    const Complex<double> c(re, im);
+                    const Complex c(re, im);
 
                     const auto point_value = calculate_julia_point(c, k, max_iter);
                     mandelbrotResult[idx] = point_value;

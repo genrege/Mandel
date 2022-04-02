@@ -9,7 +9,7 @@
 #include "fractal.h"
 #include "../MandelbrotRendererCUDA/MandelbrotSetCUDA.h"
 
-MathsEx::MandelbrotSet<double> mset;
+MathsEx::MandelbrotSet mset;
 MathsEx::mandelbrot_set mandelbrotset;
 MathsEx::julia_set juliaset;
 
@@ -360,7 +360,7 @@ extern "C" void saveMandelbrotBitmap(int gpuIndex, HDC hdc, int max_iterations, 
 extern "C" void saveJuliaBitmap(int gpuIndex, double re, double im, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename)
 {
     juliaset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), MathsEx::Complex<double>(re, im), max_iterations);
+    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), MathsEx::Complex(re, im), max_iterations);
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, juliaset.data(), display_bitmap, palette_offset);
     saveToBitmap(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned int>(), filename);
@@ -385,7 +385,7 @@ extern "C" void saveMandelbrotJPG(int gpuIndex, HDC hdc, int max_iterations, int
 extern "C" void saveJuliaJPG(int gpuIndex, double re, double im, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename)
 {
     juliaset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), MathsEx::Complex<double>(re, im), max_iterations);
+    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), MathsEx::Complex(re, im), max_iterations);
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, juliaset.data(), display_bitmap, palette_offset);
     saveToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
@@ -495,9 +495,9 @@ extern "C" DLL_API void calculateSpecial(int gpuIndex, int func, double re, doub
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
     if (gpu)
-        MathsEx::MandelbrotSet<double>::gpuSpecialKernel(gpu_accelerator(gpuIndex), func, MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+        MathsEx::MandelbrotSet::gpuSpecialKernel(gpu_accelerator(gpuIndex), func, MathsEx::Complex(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
     else
-        MathsEx::MandelbrotSet<double>::cpuSpecialKernel(func, MathsEx::Complex<double>(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+        MathsEx::MandelbrotSet::cpuSpecialKernel(func, MathsEx::Complex(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
     SafeArrayUnaccessData(*ppsa);
     SafeArrayUnlock(*ppsa);
@@ -516,7 +516,7 @@ extern "C" DLL_API void calculateBuddha(int gpuIndex, bool antiBuddha, int maxIt
     SafeArrayLock(*ppsa);
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
-    MathsEx::MandelbrotSet<double>::gpuCalculationDensity(gpu_accelerator(gpuIndex), antiBuddha, width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+    MathsEx::MandelbrotSet::gpuCalculationDensity(gpu_accelerator(gpuIndex), antiBuddha, width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
     SafeArrayUnaccessData(*ppsa);
     SafeArrayUnlock(*ppsa);
@@ -545,7 +545,7 @@ extern "C" void paletteTransform(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pale
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    MathsEx::MandelbrotSet<double>::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MathsEx::rgb*)palette_data);
+    MathsEx::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MathsEx::rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);
@@ -588,7 +588,7 @@ extern "C" void paletteTransform2(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pal
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    MathsEx::MandelbrotSet<double>::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MathsEx::rgb*)palette_data);
+    MathsEx::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MathsEx::rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);

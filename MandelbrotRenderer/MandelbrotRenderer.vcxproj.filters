@@ -52,5 +52,11 @@
     <ClCompile Include="palette.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="kernel_cpu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Complex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
