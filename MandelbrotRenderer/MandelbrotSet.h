@@ -199,6 +199,8 @@ namespace MathsEx
             const auto set_step_x = set_width / double(display_w);
             const auto set_step_y = set_height / double(display_h);
 
+            memset(dmap, 0, sizeof(unsigned) * display_w * display_h);
+
             concurrency::extent<1> e(num_points);
             concurrency::array_view<unsigned, 1> edmap(e, dmap);
 
@@ -232,8 +234,7 @@ namespace MathsEx
                             if (rx >= 0 && ry >= 0 && rx < int(display_w) && ry < int(display_h))
                             {
                                 const auto index = rx + display_w * ry;
-                                if (edmap[index] < max_iter)
-                                    edmap[index] += 1;
+                                atomic_fetch_inc(&edmap[index]);
                             }
 
                             ++iters;
