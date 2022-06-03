@@ -18,7 +18,7 @@ using namespace Concurrency;
 using namespace precise_math;
 
 
-namespace MathsEx
+namespace fractals
 {
     class MandelbrotSet
     {
@@ -96,7 +96,7 @@ namespace MathsEx
             }
         }
 
-        static void cpuSpecialKernel(int func, const Complex& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* mandelbrotResult)
+        static void cpuSpecialKernel(int func, const complex& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* mandelbrotResult)
         {
             const int num_points = display_w * display_h;
 
@@ -114,7 +114,7 @@ namespace MathsEx
 
                 const auto re = x0 + array_x * set_step_x;
                 const auto im = y0 + array_y * set_step_y;
-                const Complex c(re, im);
+                const complex c(re, im);
 
                 switch(func){
                 case  0: mandelbrotResult[i] = CalculateSpecial_0(c, k, max_iter); break;
@@ -137,7 +137,7 @@ namespace MathsEx
         }
 
 
-        static void gpuSpecialKernel(const accelerator_view& v, int func, const Complex& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
+        static void gpuSpecialKernel(const accelerator_view& v, int func, const complex& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
         {
             const auto num_points = display_w * display_h;
 
@@ -158,7 +158,7 @@ namespace MathsEx
 
                     const auto re = x0 + array_x * set_step_x;
                     const auto im = y0 + array_y * set_step_y;
-                    const Complex c(re, im);
+                    const complex c(re, im);
 
                     switch(func){
                     case  0: mandelbrotResult[idx] = CalculateSpecial_0(c, k, max_iter); break;
@@ -215,14 +215,14 @@ namespace MathsEx
 
                     const auto re = x0 + array_x * set_step_x;
                     const auto im = y0 + array_y * set_step_y;
-                    const Complex c(re, im);
+                    const complex c(re, im);
 
                     const bool escaped = anti_buddha ? false : kernel_amp::calculate_point(re, im,  max_iter) >= max_iter;
                     if (!escaped)
                     {
                         unsigned iters = 0;
 
-                        Complex z(0.0);
+                        complex z(0.0);
                         while (iters < max_iter && SumSquares(z) <= 4.0)
                         {
                             z = z * z + c;
@@ -263,11 +263,11 @@ namespace MathsEx
                 });
         }
 
-        inline static unsigned CalculateSpecial_0(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_0(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 const auto& z2 = z * z;
@@ -281,11 +281,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_1(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_1(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 const auto& z2 = z * z;
@@ -297,11 +297,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_2(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_2(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(k);
+            complex z(k);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z + c;
@@ -312,11 +312,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_3(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_3(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z * z * z + k;
@@ -327,11 +327,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_4(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_4(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z * z * z * z + k;
@@ -342,11 +342,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_5(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_5(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z * z * z * z * z + k;
@@ -357,11 +357,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_6(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_6(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = (z + z * z * z * z * z * z + z * z * z * z * z) / (z * z * z) + k;
@@ -372,11 +372,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_7(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_7(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z + Sin(z) + k;
@@ -387,11 +387,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_8(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_8(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z + Cos(z * k);
@@ -402,11 +402,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_9(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_9(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z + Cos(Sin(z + k));
@@ -417,11 +417,11 @@ namespace MathsEx
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_10(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_10(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * (z -k) * (z + k);
@@ -431,11 +431,11 @@ namespace MathsEx
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_11(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_11(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z + Tan(z + k);
@@ -445,11 +445,11 @@ namespace MathsEx
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_12(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_12(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z + Sqrt(k + z);
@@ -459,11 +459,11 @@ namespace MathsEx
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_13(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_13(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(k);
+            complex z(k);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
                 z = z * z + c;
@@ -473,14 +473,14 @@ namespace MathsEx
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_14(const Complex& c, const Complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_14(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
         {
             unsigned iters = 0;
 
-            Complex z(c);
+            complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
-                z = z * z + c - k;
+                z = Sin(z) * Cos(z) + k;
 
                 ++iters;
             }

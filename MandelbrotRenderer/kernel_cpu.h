@@ -1,6 +1,6 @@
 #pragma once
 
-namespace MathsEx
+namespace fractals
 {
     namespace kernel_cpu
     {

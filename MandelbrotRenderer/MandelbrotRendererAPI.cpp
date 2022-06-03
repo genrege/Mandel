@@ -1,3 +1,5 @@
+//This API is for C# clients.  C++ clients can use the raw functions in MandelbrotSet.h for max calculation performance.  Rendering can still be done
+//with the functions here for convenience without any loss of performance.
 
 #include "MandelbrotRendererAPI.h"
 
@@ -8,12 +10,15 @@
 #include "hdc_utils.h"
 #include "../MandelbrotRendererCUDA/MandelbrotSetCUDA.h"
 
-MathsEx::MandelbrotSet mset;
-MathsEx::mandelbrot_set mandelbrotset;
-MathsEx::julia_set juliaset;
+//This is the "legacy" set
+fractals::MandelbrotSet mset;
 
-MathsEx::iteration_palette default_palette;
-cache_memory<MathsEx::rgb> display_bitmap;
+//New set
+fractals::mandelbrot_set mandelbrotset;
+fractals::julia_set juliaset;
+
+fractals::iteration_palette default_palette;
+cache_memory<fractals::rgb> display_bitmap;
 
 namespace
 {
@@ -85,7 +90,10 @@ extern "C" void renderMandelbrot(int gpuIndex, HDC hdc, bool gpu, bool cuda, int
     {
         if (cuda)
         {
-            mandelbrotset.calculate_set_cuda(max_iterations);
+            default_palette.update(max_iterations);
+            mandelbrotset.calculate_set_cuda(max_iterations, default_palette.data(), palette_offset);
+            sendToDisplay(hdc, screenWidth, screenHeight, mandelbrotset.data());
+            return;
         }
         else
         {
@@ -97,7 +105,6 @@ extern "C" void renderMandelbrot(int gpuIndex, HDC hdc, bool gpu, bool cuda, int
 
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, mandelbrotset.data(), display_bitmap, palette_offset);
-
     sendToDisplay(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned int>());
 }
 
@@ -108,15 +115,18 @@ extern "C" void renderJulia(int gpuIndex, HDC hdc, bool gpu, bool cuda, int max_
     {
         if (cuda)
         {
-            juliaset.calculate_set_cuda(MathsEx::Complex(re, im), max_iterations);
+            default_palette.update(max_iterations);
+            juliaset.calculate_set_cuda(fractals::complex(re, im), max_iterations, default_palette.data(), palette_offset);
+            sendToDisplay(hdc, screenWidth, screenHeight, juliaset.data());
+            return;
         }
         else
         {
-            juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), MathsEx::Complex(re, im), max_iterations);
+            juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), fractals::complex(re, im), max_iterations);
         }
     }
     else
-        juliaset.calculate_set_cpu(MathsEx::Complex(re, im), max_iterations);
+        juliaset.calculate_set_cpu(fractals::complex(re, im), max_iterations);
 
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, juliaset.data(), display_bitmap, palette_offset);
@@ -145,7 +155,7 @@ extern "C" void saveMandelbrotBitmap(int gpuIndex, HDC hdc, int max_iterations, 
 extern "C" void saveJuliaBitmap(int gpuIndex, double re, double im, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename)
 {
     juliaset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), MathsEx::Complex(re, im), max_iterations);
+    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), fractals::complex(re, im), max_iterations);
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, juliaset.data(), display_bitmap, palette_offset);
     sendToBitmap(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned int>(), filename);
@@ -170,7 +180,7 @@ extern "C" void saveMandelbrotJPG(int gpuIndex, HDC hdc, int max_iterations, int
 extern "C" void saveJuliaJPG(int gpuIndex, double re, double im, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename)
 {
     juliaset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), MathsEx::Complex(re, im), max_iterations);
+    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), fractals::complex(re, im), max_iterations);
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, juliaset.data(), display_bitmap, palette_offset);
     sendToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
@@ -186,7 +196,7 @@ extern "C" void saveBuddhaJPG(int gpuIndex, HDC hdc, bool antiBuddha, int maxIte
 //  Managed client API to calculate the set data only
 extern "C" DLL_API void calculateMandelbrot(int gpuIndex, bool gpu, bool cuda, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY** ppsa)
 {
-    using namespace MathsEx;
+    using namespace fractals;
 
     const unsigned array_size = width * height;
     
@@ -204,7 +214,7 @@ extern "C" DLL_API void calculateMandelbrot(int gpuIndex, bool gpu, bool cuda, i
         if (cuda)
             kernel_cuda::mandelbrot_kernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
         else
-            kernel_amp::mandelbrot_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+            kernel_amp::mandelbrot_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, maxIterations, result, nullptr,  0);
     }
     else
         kernel_cpu::mandelbrot_kernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
@@ -216,7 +226,7 @@ extern "C" DLL_API void calculateMandelbrot(int gpuIndex, bool gpu, bool cuda, i
 //  Managed client API to calculate the Julia set data only
 extern "C" DLL_API void calculateJulia(int gpuIndex, double re, double im, bool gpu, bool cuda, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
-    using namespace MathsEx;
+    using namespace fractals;
 
     const unsigned array_size = width * height;
 
@@ -234,7 +244,7 @@ extern "C" DLL_API void calculateJulia(int gpuIndex, double re, double im, bool 
         if (cuda)
             kernel_cuda::julia_kernel(width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
         else
-            kernel_amp::julia_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
+            kernel_amp::julia_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result, nullptr, 0);
     }
     else
         kernel_cpu::julia_kernel(width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
@@ -246,7 +256,7 @@ extern "C" DLL_API void calculateJulia(int gpuIndex, double re, double im, bool 
 //  Managed client API to calculate the Julia set data only
 extern "C" DLL_API void calculateJulia2(int gpuIndex, double re, double im, bool gpu, bool cuda, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
-    using namespace MathsEx;
+    using namespace fractals;
 
     unsigned* result;
     SafeArrayLock(*ppsa);
@@ -257,7 +267,7 @@ extern "C" DLL_API void calculateJulia2(int gpuIndex, double re, double im, bool
         if (cuda)
             kernel_cuda::julia_kernel(width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
         else
-            kernel_amp::julia_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
+            kernel_amp::julia_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result, nullptr, 0);
     }
     else
         kernel_cpu::julia_kernel(width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
@@ -280,9 +290,9 @@ extern "C" DLL_API void calculateSpecial(int gpuIndex, int func, double re, doub
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
     if (gpu)
-        MathsEx::MandelbrotSet::gpuSpecialKernel(gpu_accelerator(gpuIndex), func, MathsEx::Complex(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+        fractals::MandelbrotSet::gpuSpecialKernel(gpu_accelerator(gpuIndex), func, fractals::complex(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
     else
-        MathsEx::MandelbrotSet::cpuSpecialKernel(func, MathsEx::Complex(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+        fractals::MandelbrotSet::cpuSpecialKernel(func, fractals::complex(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
     SafeArrayUnaccessData(*ppsa);
     SafeArrayUnlock(*ppsa);
@@ -301,7 +311,7 @@ extern "C" DLL_API void calculateBuddha(int gpuIndex, bool antiBuddha, int maxIt
     SafeArrayLock(*ppsa);
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
-    MathsEx::MandelbrotSet::gpuCalculationDensity(gpu_accelerator(gpuIndex), antiBuddha, width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+    fractals::MandelbrotSet::gpuCalculationDensity(gpu_accelerator(gpuIndex), antiBuddha, width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
     SafeArrayUnaccessData(*ppsa);
     SafeArrayUnlock(*ppsa);
@@ -330,7 +340,7 @@ extern "C" void paletteTransform(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pale
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    MathsEx::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MathsEx::rgb*)palette_data);
+    fractals::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (fractals::rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);
@@ -360,7 +370,7 @@ extern "C" void paletteTransform2(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pal
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    MathsEx::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (MathsEx::rgb*)palette_data);
+    fractals::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (fractals::rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);

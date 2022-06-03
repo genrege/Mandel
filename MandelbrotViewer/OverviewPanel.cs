@@ -19,6 +19,7 @@ namespace MandelbrotViewer
         public event EventHandler OnOverviewSetPosition;
 
         public int maxIterations { get; set; }
+        public bool UseCuda { get; set; }
 
         public OverviewPanel()
         {
@@ -75,7 +76,7 @@ namespace MandelbrotViewer
             int my2 = p1.Y;
 
             var hdc = this.CreateGraphics().GetHdc();
-            MandelbrotAPI.RenderBasic(gpuIndex, hdc, true, false, maxIterations, coord_, 0);
+            MandelbrotAPI.RenderBasic(gpuIndex, hdc, true, UseCuda, maxIterations, coord_, 0);
 
             int cx = mx1 + (mx2 - mx1) / 2;
             int cy = my1 + (my2 - my1) / 2;

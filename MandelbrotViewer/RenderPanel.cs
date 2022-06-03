@@ -252,16 +252,31 @@ namespace MandelbrotViewer
 
         private void RenderPanel_OnMouseWheel(object sender, MouseEventArgs e)
         {
-            var cc = Coord.SetFromScreen(e.Location.X, e.Location.Y);
-            double px = cc.X;
-            double py = cc.Y;
-
             var factor = Control.ModifierKeys == Keys.Control ? 2.0 : 1.1;
 
             if (Control.ModifierKeys == Keys.Shift)
-                factor = 1.01;
+                factor = 1.005;
 
-            DoZoom(e.Delta > 0, px, py, factor);
+            var pnt = PointToClient(new Point(MousePosition.X, MousePosition.Y));
+            var cc = Coord.SetFromScreen(pnt.X, pnt.Y);
+            double px = cc.X;
+            double py = cc.Y;
+
+            if (ModifierKeys == Keys.Shift)
+            {
+                while (ModifierKeys == Keys.Shift)
+                {
+                    pnt = PointToClient(new Point(MousePosition.X, MousePosition.Y));
+                    cc = Coord.SetFromScreen(pnt.X, pnt.Y);
+                    px = cc.X;
+                    py = cc.Y;
+                    DoZoom(e.Delta > 0, px, py, factor);
+                    Application.DoEvents();
+                }
+            }
+            else
+                DoZoom(e.Delta > 0, px, py, factor);
+
         }
 
         private void Render()
@@ -269,7 +284,8 @@ namespace MandelbrotViewer
             var gr = CreateGraphics();
             var hdc = gr.GetHdc();
 
-            var clockStart = Environment.TickCount;
+            var stopwatch = new Stopwatch();
+            stopwatch.Restart();
 
             switch (FractalSetIndex)
             {
@@ -327,12 +343,12 @@ namespace MandelbrotViewer
                     break;
             }
 
-            var clockStop = Environment.TickCount;
-
-            var frame_time_ms = clockStop - clockStart;
+            var frame_time_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
 
             gr.ReleaseHdc(hdc);
-            gr.DrawString(frame_time_ms.ToString() + " ms", DefaultFont, Brushes.LightGreen, 0, 0);
+            gr.DrawString(((int)frame_time_ms).ToString() + " ms", DefaultFont, Brushes.LightGreen, 0, 0);
+            gr.DrawString(frame_time_ms == 0 ? "XX fps" : ((int)(1000.0f / frame_time_ms)).ToString() + " fps", DefaultFont, Brushes.LightGreen, 50, 0);
+            
 
             //gr.Dispose();
             CaptureRecording();
@@ -458,7 +474,12 @@ namespace MandelbrotViewer
             timer.Stop();
             var elapsedCuda = timer.ElapsedMilliseconds;
 
-            MessageBox.Show("Current (non-CUDA): " + elapsedAMP.ToString() + "ms, CUDA: " + elapsedCuda.ToString() + "ms = " + ((float)(elapsedAMP - elapsedCuda)/ (float)elapsedAMP).ToString());
+            MessageBox.Show("Current (non-CUDA): " + elapsedAMP.ToString() + "ms, " + Environment.NewLine +
+                            "CUDA: " + elapsedCuda.ToString() + "ms" + Environment.NewLine +
+                            "Non-CUDA average:" + (elapsedAMP * 0.1f).ToString() + "ms" + Environment.NewLine + 
+                            "CUDA average:" + (elapsedCuda * 0.1f).ToString() + "ms" + Environment.NewLine +
+                            "Scale Factor: " + ((float)(elapsedAMP - elapsedCuda)/ (float)elapsedAMP).ToString() 
+                            );
 
         }
     }

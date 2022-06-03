@@ -30,6 +30,7 @@ namespace MandelbrotViewer
         /// </summary>
         private void InitializeComponent()
         {
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // RenderPanel
@@ -46,5 +47,7 @@ namespace MandelbrotViewer
         }
 
         #endregion
+
+        private Button button1;
     }
 }
