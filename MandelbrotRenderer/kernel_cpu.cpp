@@ -1,7 +1,7 @@
 #include "kernel_cpu.h"
 #include "Complex.h"
 
-namespace MathsEx
+namespace fractals
 {
     namespace kernel_cpu
     {
@@ -52,8 +52,8 @@ namespace MathsEx
 
         unsigned calculate_julia_point(double cr, double ci, double kr, double ki, unsigned maxIters)
         {
-            Complex k(kr, ki);
-            Complex z(cr, ci);
+            complex k(kr, ki);
+            complex z(cr, ci);
 
             unsigned iters = 0;
             while (iters < maxIters && SumSquares(z) <= 4.0)

@@ -1,14 +1,15 @@
+#include <cstring> 
 #include "palette.h"
 
-namespace MathsEx
+namespace fractals
 {
-void iteration_palette::apply(unsigned max_iterations, const cache_memory<unsigned>& data, cache_memory<rgb>& bmp, unsigned offset)
+void iteration_palette::update(unsigned max_iterations)
 {
     if (palette_.allocate(max_iterations + 1))
     {
         const float scale = 6.3f / max_iterations;
-        
-        #pragma omp         parallel for
+
+#pragma omp         parallel for
         for (int i = 0; i < static_cast<int>(max_iterations); ++i)
         {
             palette_[i].r = static_cast<unsigned char>(sin(scale * i + 3) * 127 + 128);
@@ -20,9 +21,14 @@ void iteration_palette::apply(unsigned max_iterations, const cache_memory<unsign
         palette_[max_iterations].g = 0;
         palette_[max_iterations].b = 0;
     }
+}
 
+void iteration_palette::apply(unsigned max_iterations, const cache_memory<unsigned>& data, cache_memory<rgb>& bmp, unsigned offset) 
+{
+    update(max_iterations);
 
-    #pragma omp         parallel for
+    //TODO - This is too slow on the CPU
+#pragma omp         parallel for
     for (int i = 0; i < static_cast<int>(data.size()); ++i)
     {
         unsigned index = data[i] != max_iterations ? (data[i] + offset) % ( max_iterations) : data[i];

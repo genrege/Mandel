@@ -55,6 +55,7 @@ namespace MandelbrotViewer
 
             listGPU.SelectedIndex = 0;
             renderPanel.useCUDA = listGPU.Text.Contains("CUDA");
+            overviewPanel.UseCuda = renderPanel.useCUDA;
 
             renderPanel.useGpu = listGPU.Text != "CPU";
 
@@ -380,6 +381,7 @@ namespace MandelbrotViewer
                 gpuIndex = int.Parse(listGPU.Text.Split(';')[0]);
             renderPanel.useGpu = listGPU.Text != "CPU";
             renderPanel.useCUDA = listGPU.Text.Contains("CUDA");
+            overviewPanel.UseCuda = renderPanel.useCUDA;
             renderPanel.gpuIndex = gpuIndex;
             overviewPanel.gpuIndex = gpuIndex;
             overviewPanel.Invalidate();

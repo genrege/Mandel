@@ -4,28 +4,28 @@
 #include <amp.h>
 #include <amp_math.h>
 
-namespace MathsEx
+namespace fractals
 {
-    class Complex
+    class complex
     {
     public:
-        Complex() restrict(amp, cpu) : m_re(0), m_im(0)
+        complex() restrict(amp, cpu) : m_re(0), m_im(0)
         {
         }
 
-        Complex(double re, double im) restrict(amp, cpu) : m_re(re), m_im(im)
+        complex(double re, double im) restrict(amp, cpu) : m_re(re), m_im(im)
         {
         }
 
-        Complex(double re) restrict(amp, cpu) : m_re(re), m_im(0)
+        complex(double re) restrict(amp, cpu) : m_re(re), m_im(0)
         {
         }
 
-        Complex(const Complex& rhs) restrict(amp, cpu) : m_re(rhs.m_re), m_im(rhs.m_im)
+        complex(const complex& rhs) restrict(amp, cpu) : m_re(rhs.m_re), m_im(rhs.m_im)
         {
         }
 
-        inline Complex& operator=(const Complex& rhs) restrict(amp, cpu)
+        inline complex& operator=(const complex& rhs) restrict(amp, cpu)
         {
             if (&rhs != this)
             {
@@ -58,42 +58,42 @@ namespace MathsEx
 
 
 
-        inline Complex Conjugate() const restrict(amp, cpu)
+        inline complex Conjugate() const restrict(amp, cpu)
         {
-            return Complex{ m_re, -m_im };
+            return complex{ m_re, -m_im };
         }
 
-        inline Complex operator+(double x) const restrict(amp, cpu)
+        inline complex operator+(double x) const restrict(amp, cpu)
         {
             return { m_re + x, m_im };
         }
 
-        inline Complex operator-(double x) const restrict(amp, cpu)
+        inline complex operator-(double x) const restrict(amp, cpu)
         {
             return { m_re - x, m_im };
         }
 
-        inline Complex operator+(const Complex& rhs) const restrict(amp, cpu)
+        inline complex operator+(const complex& rhs) const restrict(amp, cpu)
         {
             return { m_re + rhs.m_re, m_im + rhs.m_im };
         }
 
-        inline Complex operator-(const Complex& rhs) const restrict(amp, cpu)
+        inline complex operator-(const complex& rhs) const restrict(amp, cpu)
         {
             return { m_re - rhs.m_re, m_im - rhs.m_im };
         }
 
-        inline Complex operator*(const Complex& rhs) const restrict(amp, cpu)
+        inline complex operator*(const complex& rhs) const restrict(amp, cpu)
         {
             return { m_re * rhs.m_re - m_im * rhs.m_im, m_im * rhs.m_re + m_re * rhs.m_im };
         }
 
-        inline Complex squared()  const restrict(amp, cpu)
+        inline complex squared()  const restrict(amp, cpu)
         {
             return { m_re * m_re - m_im * m_im, 2 * m_re * m_im };
         }
 
-        inline Complex operator/(const Complex& rhs) const restrict(amp, cpu)
+        inline complex operator/(const complex& rhs) const restrict(amp, cpu)
         {
             const double a = m_re;
             const double b = m_im;
@@ -108,27 +108,73 @@ namespace MathsEx
         double m_re;
         double m_im;
 
-        friend double Re(const Complex& z) restrict(amp, cpu);
-        friend double Im(const Complex& z) restrict(amp, cpu);
-        friend double SumSquares(const Complex& z) restrict(amp, cpu);
-        friend double Mod(const Complex& z) restrict (amp, cpu);
-        friend Complex Reciprocal(const Complex& z) restrict(amp, cpu);
+        friend double Re(const complex& z) restrict(amp, cpu);
+        friend double Im(const complex& z) restrict(amp, cpu);
+        friend double SumSquares(const complex& z) restrict(amp, cpu);
+        friend double Mod(const complex& z) restrict (amp, cpu);
+        friend complex Reciprocal(const complex& z) restrict(amp, cpu);
 
-        friend Complex operator*(double re, const Complex& z) restrict(amp, cpu);
-        friend Complex operator/(double re, const Complex& z) restrict(amp, cpu);
+        friend complex operator*(double re, const complex& z) restrict(amp, cpu);
+        friend complex operator/(double re, const complex& z) restrict(amp, cpu);
     };
 
-    double Re(const Complex& z) restrict(amp, cpu);
-    double Im(const Complex& z) restrict(amp, cpu);
-    double SumSquares(const Complex& z) restrict(amp, cpu);
-    double Mod(const Complex& z) restrict(amp, cpu);
-    Complex Sin(const Complex& z) restrict(amp, cpu);
-    Complex Cos(const Complex& z) restrict(amp, cpu);
-    Complex Tan(const Complex& z) restrict(amp, cpu);
-    Complex Reciprocal(const Complex& z) restrict(amp, cpu);
-    Complex operator*(double re, const Complex& z) restrict(amp, cpu);
-    Complex operator/(double re, const Complex& z) restrict(amp, cpu);
-    Complex Sqrt(const Complex& z) restrict(amp, cpu);
+    inline double SumSquares(const complex& z) restrict(amp, cpu)
+    {
+        return z.m_re * z.m_re + z.m_im * z.m_im;
+    }
+
+    inline double Mod(const complex& z) restrict(amp, cpu)
+    {
+        return concurrency::precise_math::sqrt(z.Re() * z.Re() + z.Im() * z.Im());
+    }
+
+    inline complex Sin(const complex& z) restrict(amp, cpu)
+    {
+        using namespace concurrency::precise_math;
+        return complex(sin(z.Re()) * cosh(z.Im()), cos(z.Im()) * sinh(z.Re()));
+    }
+
+    inline complex Cos(const complex& z) restrict(amp, cpu)
+    {
+        using namespace concurrency::precise_math;
+        return complex(cos(z.Re()) * cosh(z.Im()),  -sin(z.Re()) * sinh(z.Im()));
+    }
+
+    inline complex Tan(const complex& z) restrict(amp, cpu)
+    {
+        using namespace concurrency::precise_math;
+        return Sin(z) / Cos(z);
+    }
+
+    inline complex Reciprocal(const complex& z) restrict(amp, cpu)
+    {
+        return complex(1, 0) / z;
+    }
+
+    inline complex operator*(double re, const complex& z) restrict(amp, cpu)
+    {
+        return complex(re * z.m_re, re * z.m_im);
+    }
+
+    inline complex operator/(double re, const complex& z) restrict(amp, cpu)
+    {
+        return complex(re) / z;
+    }
+
+    inline complex Sqrt(const complex& z) restrict(amp, cpu)
+    {
+        using namespace concurrency::precise_math;
+
+        const auto x = z.Re();
+        const auto y = z.Im();
+
+        const auto xy2 = x * x + y * y;
+        const auto rxy2 = sqrt(xy2);
+
+        const auto re = sqrt((rxy2 + x) * 0.5);
+        const auto im = sqrt((rxy2 - x) * 0.5);
+        return { re, im };
+    }
 
 }   //namespace MathsEx
 

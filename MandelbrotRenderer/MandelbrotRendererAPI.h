@@ -35,6 +35,6 @@ extern "C" DLL_API void calculateSpecial(int gpuIndex, int func, double re, doub
 extern "C" DLL_API void calculateBuddha(int gpuIndex, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa);
 extern "C" DLL_API void paletteTransform(int gpuIndex, SAFEARRAY * input, SAFEARRAY * palette, SAFEARRAY * *ppsa);
 extern "C" DLL_API void paletteTransform2(int gpuIndex, SAFEARRAY * input, SAFEARRAY * palette, SAFEARRAY * *ppsa);
-extern "C" DLL_API void renderArrayToDevice(HDC hdc, int width, int height, SAFEARRAY* input);
+extern "C" DLL_API void renderArrayToDisplay(HDC hdc, int width, int height, SAFEARRAY* input);
 extern "C" DLL_API void renderArrayToBitmap(HDC hdc, int width, int height, SAFEARRAY * input, const char* filename);
 extern "C" DLL_API void renderArrayToJPEG(HDC hdc, int width, int height, SAFEARRAY * input, const char* filename);
