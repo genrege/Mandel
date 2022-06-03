@@ -127,3 +127,4 @@
 .vs/MandelAmp/v17/Solution.VC.db-shm
 .vs/MandelAmp/v17/Solution.VC.db-wal
 x64
+MandelbrotRendererCUDA/x64/Release/MandelbrotRendererCUDA.Build.CppClean.log
