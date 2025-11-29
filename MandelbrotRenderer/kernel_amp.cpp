@@ -1,3 +1,8 @@
+/*
+    DEPRECATED
+*/
+
+/*
 #include "kernel_amp.h"
 #include "Complex.h"
 
@@ -84,3 +89,4 @@ namespace fractals
 
     }
 }
+*/

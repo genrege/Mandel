@@ -48,7 +48,7 @@ namespace MandelbrotViewer
 
             foreach (var gpu in gpus)
             {
-                if (gpu != "CPU accelerator")
+                if (gpu != null && gpu != "CPU accelerator")
                     listGPU.Items.Add(gpu);
             }
             listGPU.Items.Add("CPU");
@@ -505,6 +505,25 @@ namespace MandelbrotViewer
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
+        }
+
+        private void chkContinuousCycle_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkContinuousCycle.Checked)
+                nudPaletteOffset.Value = 0;
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            if (chkContinuousCycle.Checked)
+            {
+                int next_offset = renderPanel.PaletteOffset + Math.Max(1, trackBarMaxIterations.Value / 256);
+                if (next_offset > Decimal.ToInt32(nudPaletteOffset.Maximum))
+                    next_offset = 0;
+                nudPaletteOffset.Value = next_offset;
+                renderPanel.PaletteOffset = next_offset;
+                //renderPanel.Refresh();
+            }
         }
     }
 }

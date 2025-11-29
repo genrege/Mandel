@@ -4,7 +4,6 @@
 
 #include "cached_memory.h"
 #include "Complex.h"
-#include "kernel_amp.h"
 #include "kernel_cuda.h"
 #include "kernel_cpu.h"
 
@@ -71,15 +70,9 @@ public:
         kernel_cpu::mandelbrot_kernel(wx(), wy(), x0(), x1(), y0(), y1(), max_iterations, data());
     }
 
-    void calculate_set_amp(const accelerator_view& v, const unsigned max_iterations, unsigned* palette = nullptr, unsigned palette_offset = 0)
+    void calculate_set_cuda(int gpu_index, const unsigned max_iterations, unsigned* palette = nullptr, unsigned palette_index = 0)
     {
-        allocate_data();
-        kernel_amp::mandelbrot_kernel(v, wx(), wy(), x0(), x1(), y0(), y1(), max_iterations, data(), palette, palette_offset);
-    }
-
-    void calculate_set_cuda(const unsigned max_iterations, unsigned* palette = nullptr, unsigned palette_index = 0)
-    {
-        kernel_cuda::mandelbrot_kernel(wx(), wy(), x0(), x1(), y0(), y1(), max_iterations, data(), palette, palette_index);
+        kernel_cuda::mandelbrot_kernel(gpu_index, wx(), wy(), x0(), x1(), y0(), y1(), max_iterations, data(), palette, palette_index);
     }
 };
 
@@ -94,16 +87,25 @@ public:
         kernel_cpu::julia_kernel(wx(), wy(), x0(), x1(), y0(), y1(), k.Re(), k.Im(), max_iterations, data());
     }
 
-    void calculate_set_amp(const accelerator_view& v, const complex& k, const unsigned max_iterations, unsigned* palette = nullptr, unsigned palette_offset = 0)
+    void calculate_set_cuda(int gpu_index, const complex& k, const unsigned max_iterations, unsigned* palette = nullptr, unsigned palette_offset = 0)
     {
-        allocate_data();
-        kernel_amp::julia_kernel(v, wx(), wy(), x0(), x1(), y0(), y1(), k.Re(), k.Im(), max_iterations, data(), palette, palette_offset);
-    }
-
-    void calculate_set_cuda(const complex& k, const unsigned max_iterations, unsigned* palette = nullptr, unsigned palette_offset = 0)
-    {
-        kernel_cuda::julia_kernel(wx(), wy(), x0(), x1(), y0(), y1(), k.Re(), k.Im(), max_iterations, data(), palette, palette_offset);
+        kernel_cuda::julia_kernel(gpu_index, wx(), wy(), x0(), x1(), y0(), y1(), k.Re(), k.Im(), max_iterations, data(), palette, palette_offset);
     }
 };
 
+class buddha_set : public fractal
+{
+public:
+    buddha_set() = default;
+
+    void calculate_set_cpu()
+    {
+        allocate_data();
+    }
+
+    void calculate_set_cuda(int gpu_index, bool anti_buddha, const unsigned max_iterations)
+    {
+        kernel_cuda::buddha_kernel(gpu_index, anti_buddha, wx(), wy(), x0(), x1(), y0(), y1(), max_iterations, data());
+    }
+};
 }   //  MathsEx

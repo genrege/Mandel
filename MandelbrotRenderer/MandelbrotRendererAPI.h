@@ -19,7 +19,7 @@ extern "C" struct palette
 extern "C" DLL_API void GPU(SAFEARRAY** ppsa);
 extern "C" DLL_API void renderMandelbrot(int gpuIndex, HDC hdc, bool gpu, bool cuda, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset);
 extern "C" DLL_API void renderJulia(int gpuIndex, HDC hdc, bool gpu, bool cuda, int maxIterations, double re, double im, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset);
-extern "C" DLL_API void renderBuddha(int gpuIndex, HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax);
+extern "C" DLL_API void renderBuddha(int gpuIndex, HDC hdc, bool cuda, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset);
 extern "C" DLL_API void saveMandelbrotBitmap(int gpuIndex, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename);
 extern "C" DLL_API void saveJuliaBitmap(int gpuIndex, double re, double im, HDC hdc, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename);
 extern "C" DLL_API void saveBuddhaBitmap(int gpuIndex, HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename);

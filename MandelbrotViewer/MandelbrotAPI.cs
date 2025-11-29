@@ -25,14 +25,14 @@ namespace MandelbrotViewer
             MandelbrotDLLInterface.renderJulia(gpuIndex, hdc, gpu, cuda, maxIterations, re, im, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, palette_offset);
         }
 
-        public static void RenderBuddha(int gpuIndex, IntPtr hdc, int maxIterations, CoordinateSpace cspace)
+        public static void RenderBuddha(int gpuIndex, bool cuda, IntPtr hdc, int maxIterations, CoordinateSpace cspace, int palette_offset)
         {
-            MandelbrotDLLInterface.renderBuddha(gpuIndex, hdc, false, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
+            MandelbrotDLLInterface.renderBuddha(gpuIndex, hdc, cuda, false, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, palette_offset);
         }
 
-        public static void RenderAntiBuddha(int gpuIndex, IntPtr hdc, int maxIterations, CoordinateSpace cspace)
+        public static void RenderAntiBuddha(int gpuIndex, bool cuda, IntPtr hdc, int maxIterations, CoordinateSpace cspace, int palette_offset)
         {
-            MandelbrotDLLInterface.renderBuddha(gpuIndex, hdc, true, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax);
+            MandelbrotDLLInterface.renderBuddha(gpuIndex, hdc, cuda, true, maxIterations, cspace.ScreenWidth, cspace.ScreenHeight, cspace.XMin, cspace.XMax, cspace.YMin, cspace.YMax, palette_offset);
         }
 
         public static void SaveBitmapToFile(int gpuIndex, IntPtr hdc, int maxIterations, CoordinateSpace cspace, int palette_offset, string filename)

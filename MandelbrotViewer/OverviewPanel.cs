@@ -42,7 +42,7 @@ namespace MandelbrotViewer
         {
             double aspectRatio = (double)Width / (double)Height;
             var hdc = e.Graphics.GetHdc();
-            MandelbrotAPI.RenderBasic(gpuIndex, hdc, false, false, maxIterations, coord_, 0);
+            MandelbrotAPI.RenderBasic(gpuIndex, hdc, true, true, maxIterations, coord_, 0);
         }
 
         private void OverviewPanel_MouseClick(object sender, MouseEventArgs e)

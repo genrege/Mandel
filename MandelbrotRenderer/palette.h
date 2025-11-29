@@ -20,6 +20,7 @@ public:
     iteration_palette() = default;
 
     void update(unsigned max_iterations);
+    void update_for_buddha(unsigned* density, unsigned size_density);
     void apply(unsigned max_iterations, const cache_memory<unsigned>& data, cache_memory<rgb>& bmp, unsigned offset = 0);
     unsigned* data()
     {

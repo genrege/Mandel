@@ -1,3 +1,7 @@
+/*
+    DEPRECATED
+*/
+/*
 #pragma once
 
 #include <amp.h>
@@ -39,3 +43,4 @@ namespace fractals
         void julia_kernel(const accelerator_view& v, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, double kr, double ki, unsigned max_iter, unsigned* iters, unsigned* palette = nullptr, unsigned palette_offset = 0);
     }
 }
+*/
