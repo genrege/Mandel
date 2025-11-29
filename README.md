@@ -8,7 +8,8 @@ Latest commit - CUDA
 - Temporary benchmark comparison by double-clicking the render panel for comparison of current GPU running C++ AMP vs installed NVIDIA gpu running CUDA
 
 Build:
-- Builds with VS 2022, C++ 143 toolset and .Net 4.7.2
+- Needs CUDA 12.6
+- Builds with VS2022 and VS2026
 
 Basic instructions:
 - Select the set to render from the dropdown
@@ -41,4 +42,5 @@ Hardware/OS:
 - GPU: tested on AMD Radeon VII, NVidia 2070 Super and NVidia 1660 Super
 - CPU: AMD 3900X, AMD 3600X, AMD 5950X
 - Windows 10
+
 
