@@ -5,7 +5,6 @@
 
 #include "Complex.h"
 #include "MandelbrotSet.h"
-#include "MandelbrotSetCL.h"
 #include "fractal.h"
 #include "hdc_utils.h"
 #include "../MandelbrotRendererCUDA/MandelbrotSetCUDA.h"
@@ -16,47 +15,22 @@ fractals::MandelbrotSet mset;
 //New set
 fractals::mandelbrot_set mandelbrotset;
 fractals::julia_set juliaset;
+fractals::buddha_set buddhaset;
 
 fractals::iteration_palette default_palette;
+fractals::iteration_palette buddha_palette;
 cache_memory<fractals::rgb> display_bitmap;
-
-namespace
-{
-    auto gpu_accelerator(int gpuIndex)
-    {
-        const auto& accls = accelerator::get_all();
-        return accelerator(accls[gpuIndex]).default_view;
-    }
-}
-
-int countGPU()
-{
-    std::vector<accelerator> accls = accelerator::get_all();
-
-    int count = 0;
-    for (size_t i = 0; i < accls.size(); ++i)
-    {
-        const auto& accl = accls[i];
-
-        const auto& desc = std::to_wstring(i) + L";" + accl.description;
-        
-        if (desc.find(L"NVIDIA") != std::string::npos) //NVIDIA has a CUDA option, so add an extra one
-            ++count;
-        ++count;
-    }
-
-    return static_cast<int>(accls.size());
-}
 
 extern "C" void GPU(SAFEARRAY** ppsa)
 {
     const auto& accls = accelerator::get_all();
 
-    size_t count = accls.size();;
+    const auto count = accls.size() - 1;
+    const auto cuda_device_count = mbrot_cuda::device_count();
 
     SAFEARRAYBOUND rgsa;
     rgsa.lLbound = 0;
-    rgsa.cElements = static_cast<ULONG>(count);
+    rgsa.cElements = static_cast<ULONG>(count + cuda_device_count);
     *ppsa = SafeArrayCreate(VT_BSTR, 1, &rgsa);
     
     unsigned* result;
@@ -64,19 +38,26 @@ extern "C" void GPU(SAFEARRAY** ppsa)
     SafeArrayAccessData(*ppsa, (void HUGEP**)&result);
 
     size_t index = 0;
+    for (size_t i = 0; i < cuda_device_count; ++i)
+    {
+        auto device_name = std::to_string(i) + ";CUDA;" + mbrot_cuda::device_name(i);
+        OLECHAR dv[256];
+        mbstowcs(dv, device_name.c_str(), 256);
+        std::wstring wdv = dv;
+        auto hr = SafeArrayPutElement(*ppsa, (LONG*)&index, SysAllocString(wdv.c_str()));
+        if (SUCCEEDED(hr))
+            ++index;
+    }
     for (size_t i = 0; i < accls.size(); ++i)
     {
         const auto& accl = accls[i];
-        const auto& desc = std::to_wstring(i) + L";" + accl.description;
-        (void)SafeArrayPutElement(*ppsa, (LONG*)&index, SysAllocString(desc.c_str()));
+        if (accl.description.find(L"CPU accelerator") != std::wstring::npos)
+            continue;
 
-        if (desc.find(L"NVIDIA") != std::string::npos)
-        {
+        const auto& desc = std::to_wstring(i) + L";C++ AMP;" + accl.description;
+        auto hr = SafeArrayPutElement(*ppsa, (LONG*)&index, SysAllocString(desc.c_str()));
+        if (SUCCEEDED(hr))
             ++index;
-            (void)SafeArrayPutElement(*ppsa, (LONG*)&index, SysAllocString((desc + L" (CUDA)").c_str()));
-        }
-
-        ++index;
     }
 
     SafeArrayUnaccessData(*ppsa);
@@ -91,13 +72,9 @@ extern "C" void renderMandelbrot(int gpuIndex, HDC hdc, bool gpu, bool cuda, int
         if (cuda)
         {
             default_palette.update(max_iterations);
-            mandelbrotset.calculate_set_cuda(max_iterations, default_palette.data(), palette_offset);
+            mandelbrotset.calculate_set_cuda(gpuIndex, max_iterations, default_palette.data(), palette_offset);
             sendToDisplay(hdc, screenWidth, screenHeight, mandelbrotset.data());
             return;
-        }
-        else
-        {
-            mandelbrotset.calculate_set_amp(gpu_accelerator(gpuIndex), max_iterations);
         }
     }
     else
@@ -116,13 +93,9 @@ extern "C" void renderJulia(int gpuIndex, HDC hdc, bool gpu, bool cuda, int max_
         if (cuda)
         {
             default_palette.update(max_iterations);
-            juliaset.calculate_set_cuda(fractals::complex(re, im), max_iterations, default_palette.data(), palette_offset);
+            juliaset.calculate_set_cuda(gpuIndex, fractals::complex(re, im), max_iterations, default_palette.data(), palette_offset);
             sendToDisplay(hdc, screenWidth, screenHeight, juliaset.data());
             return;
-        }
-        else
-        {
-            juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), fractals::complex(re, im), max_iterations);
         }
     }
     else
@@ -134,18 +107,28 @@ extern "C" void renderJulia(int gpuIndex, HDC hdc, bool gpu, bool cuda, int max_
     sendToDisplay(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned int>());
 }
 
-extern "C" void renderBuddha(int gpuIndex, HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax)
-{
-    mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateBuddha(gpu_accelerator(gpuIndex), antiBuddha, maxIterations);
 
-    sendToDisplay(hdc, screenWidth, screenHeight, mset.bmp());
+extern "C" void renderBuddha(int gpuIndex, HDC hdc, bool cuda, bool anti_buddha, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset)
+{
+    if (cuda)
+    {
+        buddhaset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
+        display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
+        display_bitmap.zero_memory();
+        buddhaset.calculate_set_cuda(gpuIndex, anti_buddha, max_iterations);
+
+        buddha_palette.update_for_buddha(buddhaset.data(), buddhaset.wx() * buddhaset.wy());
+        buddha_palette.apply(max_iterations, mandelbrotset.data(), display_bitmap, palette_offset);
+
+        buddha_palette.apply(max_iterations, buddhaset.data(), display_bitmap, palette_offset);
+        sendToDisplay(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned int>());
+    }
 }
 
 extern "C" void saveMandelbrotBitmap(int gpuIndex, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename)
 {
     mandelbrotset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mandelbrotset.calculate_set_amp(gpu_accelerator(gpuIndex), max_iterations);
+    mandelbrotset.calculate_set_cuda(gpuIndex, max_iterations);
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, mandelbrotset.data(), display_bitmap, palette_offset);
     sendToBitmap(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned int>(), filename);
@@ -155,23 +138,16 @@ extern "C" void saveMandelbrotBitmap(int gpuIndex, HDC hdc, int max_iterations, 
 extern "C" void saveJuliaBitmap(int gpuIndex, double re, double im, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename)
 {
     juliaset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), fractals::complex(re, im), max_iterations);
+    juliaset.calculate_set_cuda(gpuIndex, fractals::complex(re, im), max_iterations);
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, juliaset.data(), display_bitmap, palette_offset);
     sendToBitmap(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned int>(), filename);
 }
 
-extern "C" void saveBuddhaBitmap(int gpuIndex, HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
-{
-    mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateBuddha(gpu_accelerator(gpuIndex), antiBuddha, maxIterations);
-    sendToBitmap(hdc, screenWidth, screenHeight, mset.bmp(), filename);
-}
-
 extern "C" void saveMandelbrotJPG(int gpuIndex, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename)
 {
     mandelbrotset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mandelbrotset.calculate_set_amp(gpu_accelerator(gpuIndex), max_iterations);
+    mandelbrotset.calculate_set_cuda(gpuIndex, max_iterations);
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, mandelbrotset.data(), display_bitmap, palette_offset);
     sendToJPEG(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned>(), filename);
@@ -180,17 +156,10 @@ extern "C" void saveMandelbrotJPG(int gpuIndex, HDC hdc, int max_iterations, int
 extern "C" void saveJuliaJPG(int gpuIndex, double re, double im, HDC hdc, int max_iterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, unsigned palette_offset, const char* filename)
 {
     juliaset.set_scale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    juliaset.calculate_set_amp(gpu_accelerator(gpuIndex), fractals::complex(re, im), max_iterations);
+    juliaset.calculate_set_cuda(gpuIndex, fractals::complex(re, im), max_iterations);
     display_bitmap.allocate(sizeof(unsigned) * screenWidth * screenHeight);
     default_palette.apply(max_iterations, juliaset.data(), display_bitmap, palette_offset);
-    sendToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
-}
-
-extern "C" void saveBuddhaJPG(int gpuIndex, HDC hdc, bool antiBuddha, int maxIterations, int screenWidth, int screenHeight, double xMin, double xMax, double yMin, double yMax, const char* filename)
-{
-    mset.SetScale(xMin, xMax, yMin, yMax, screenWidth, screenHeight);
-    mset.CalculateBuddha(gpu_accelerator(gpuIndex), antiBuddha, maxIterations);
-    sendToJPEG(hdc, screenWidth, screenHeight, mset.bmp(), filename);
+    sendToJPEG(hdc, screenWidth, screenHeight, display_bitmap.access_as<unsigned>(), filename);
 }
 
 //  Managed client API to calculate the set data only
@@ -212,9 +181,7 @@ extern "C" DLL_API void calculateMandelbrot(int gpuIndex, bool gpu, bool cuda, i
     if (gpu)
     {
         if (cuda)
-            kernel_cuda::mandelbrot_kernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
-        else
-            kernel_amp::mandelbrot_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, maxIterations, result, nullptr,  0);
+            kernel_cuda::mandelbrot_kernel(gpuIndex, width, height, xMin, xMax, yMin, yMax, maxIterations, result);
     }
     else
         kernel_cpu::mandelbrot_kernel(width, height, xMin, xMax, yMin, yMax, maxIterations, result);
@@ -242,9 +209,7 @@ extern "C" DLL_API void calculateJulia(int gpuIndex, double re, double im, bool 
     if (gpu)
     {
         if (cuda)
-            kernel_cuda::julia_kernel(width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
-        else
-            kernel_amp::julia_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result, nullptr, 0);
+            kernel_cuda::julia_kernel(gpuIndex, width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
     }
     else
         kernel_cpu::julia_kernel(width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
@@ -265,9 +230,7 @@ extern "C" DLL_API void calculateJulia2(int gpuIndex, double re, double im, bool
     if (gpu)
     {
         if (cuda)
-            kernel_cuda::julia_kernel(width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
-        else
-            kernel_amp::julia_kernel(gpu_accelerator(gpuIndex), width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result, nullptr, 0);
+            kernel_cuda::julia_kernel(gpuIndex, width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
     }
     else
         kernel_cpu::julia_kernel(width, height, xMin, xMax, yMin, yMax, re, im, maxIterations, result);
@@ -278,6 +241,8 @@ extern "C" DLL_API void calculateJulia2(int gpuIndex, double re, double im, bool
 
 extern "C" DLL_API void calculateSpecial(int gpuIndex, int func, double re, double im, bool gpu, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
+    (void)gpu;
+    (void)gpuIndex;
     const unsigned array_size = width * height;
 
     SAFEARRAYBOUND rgsa;
@@ -289,15 +254,13 @@ extern "C" DLL_API void calculateSpecial(int gpuIndex, int func, double re, doub
     SafeArrayLock(*ppsa);
     SafeArrayAccessData(*ppsa, (void HUGEP**) & result);
 
-    if (gpu)
-        fractals::MandelbrotSet::gpuSpecialKernel(gpu_accelerator(gpuIndex), func, fractals::complex(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
-    else
-        fractals::MandelbrotSet::cpuSpecialKernel(func, fractals::complex(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
+    fractals::MandelbrotSet::cpuSpecialKernel(func, fractals::complex(re, im), width, height, xMin, xMax, yMin, yMax, maxIterations, result);
 
     SafeArrayUnaccessData(*ppsa);
     SafeArrayUnlock(*ppsa);
 }
 
+/*
 extern "C" DLL_API void calculateBuddha(int gpuIndex, bool antiBuddha, int maxIterations, int width, int height, double xMin, double xMax, double yMin, double yMax, SAFEARRAY * *ppsa)
 {
     const unsigned array_size = width * height;
@@ -316,18 +279,21 @@ extern "C" DLL_API void calculateBuddha(int gpuIndex, bool antiBuddha, int maxIt
     SafeArrayUnaccessData(*ppsa);
     SafeArrayUnlock(*ppsa);
 }
+*/
 
 //  Managed client API to transform data according to an input palette.  
 //  The operation is ppsaResult[i] = palette[input[i]].
 extern "C" void paletteTransform(int gpuIndex, SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)
 {
+    (void)gpuIndex;
+
     SafeArrayLock(input);
     unsigned array_size = input->rgsabound->cElements;
     unsigned* input_data;
     SafeArrayAccessData(input, (void HUGEP**)&input_data);
 
     SafeArrayLock(palette);
-    unsigned palette_size = palette->rgsabound->cElements;
+    //unsigned palette_size = palette->rgsabound->cElements;
     unsigned* palette_data;
     SafeArrayAccessData(palette, (void HUGEP**)&palette_data);
 
@@ -340,7 +306,7 @@ extern "C" void paletteTransform(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pale
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    fractals::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (fractals::rgb*)palette_data);
+    //fractals::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (fractals::rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);
@@ -356,13 +322,14 @@ extern "C" void paletteTransform(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pale
 //  The operation is ppsaResult[i] = palette[input[i]].
 extern "C" void paletteTransform2(int gpuIndex, SAFEARRAY* input, SAFEARRAY* palette, SAFEARRAY** ppsaResult)
 {
+    (void)gpuIndex;
     SafeArrayLock(input);
-    unsigned array_size = input->rgsabound->cElements;
+    //unsigned array_size = input->rgsabound->cElements;
     unsigned* input_data;
     SafeArrayAccessData(input, (void HUGEP**)&input_data);
 
     SafeArrayLock(palette);
-    unsigned palette_size = palette->rgsabound->cElements;
+    //unsigned palette_size = palette->rgsabound->cElements;
     unsigned* palette_data;
     SafeArrayAccessData(palette, (void HUGEP**)&palette_data);
 
@@ -370,7 +337,7 @@ extern "C" void paletteTransform2(int gpuIndex, SAFEARRAY* input, SAFEARRAY* pal
     SafeArrayLock(*ppsaResult);
     SafeArrayAccessData(*ppsaResult, (void HUGEP**) &result);
 
-    fractals::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (fractals::rgb*)palette_data);
+    //fractals::MandelbrotSet::gpuPaletteKernel(gpu_accelerator(gpuIndex), array_size, input_data, result, palette_size, (fractals::rgb*)palette_data);
 
     SafeArrayUnaccessData(*ppsaResult);
     SafeArrayUnlock(*ppsaResult);

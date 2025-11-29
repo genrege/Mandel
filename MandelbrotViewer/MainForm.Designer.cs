@@ -32,6 +32,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.mainSplitter = new System.Windows.Forms.SplitContainer();
             this.SplitControlContainer = new System.Windows.Forms.SplitContainer();
+            this.nudPaletteOffset = new System.Windows.Forms.NumericUpDown();
             this.txtMaxIterations = new System.Windows.Forms.NumericUpDown();
             this.checkLoop = new System.Windows.Forms.CheckBox();
             this.btnLoadRec = new System.Windows.Forms.Button();
@@ -59,17 +60,18 @@
             this.txtMouseCoords = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.nudPaletteOffset = new System.Windows.Forms.NumericUpDown();
+            this.chkContinuousCycle = new System.Windows.Forms.CheckBox();
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.mainSplitter)).BeginInit();
             this.mainSplitter.Panel1.SuspendLayout();
             this.mainSplitter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).BeginInit();
             this.SplitControlContainer.Panel1.SuspendLayout();
             this.SplitControlContainer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudPaletteOffset)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtMaxIterations)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.upDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudPaletteOffset)).BeginInit();
             this.SuspendLayout();
             // 
             // mainSplitter
@@ -99,6 +101,7 @@
             // SplitControlContainer.Panel1
             // 
             this.SplitControlContainer.Panel1.BackColor = System.Drawing.Color.Black;
+            this.SplitControlContainer.Panel1.Controls.Add(this.chkContinuousCycle);
             this.SplitControlContainer.Panel1.Controls.Add(this.nudPaletteOffset);
             this.SplitControlContainer.Panel1.Controls.Add(this.txtMaxIterations);
             this.SplitControlContainer.Panel1.Controls.Add(this.checkLoop);
@@ -130,6 +133,15 @@
             this.SplitControlContainer.Size = new System.Drawing.Size(379, 654);
             this.SplitControlContainer.SplitterDistance = 467;
             this.SplitControlContainer.TabIndex = 4;
+            // 
+            // nudPaletteOffset
+            // 
+            this.nudPaletteOffset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.nudPaletteOffset.Location = new System.Drawing.Point(282, 57);
+            this.nudPaletteOffset.Name = "nudPaletteOffset";
+            this.nudPaletteOffset.Size = new System.Drawing.Size(56, 20);
+            this.nudPaletteOffset.TabIndex = 28;
+            this.nudPaletteOffset.ValueChanged += new System.EventHandler(this.nudPaletteOffset_ValueChanged);
             // 
             // txtMaxIterations
             // 
@@ -425,14 +437,23 @@
             this.timer1.Interval = 1;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // nudPaletteOffset
+            // chkContinuousCycle
             // 
-            this.nudPaletteOffset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.nudPaletteOffset.Location = new System.Drawing.Point(282, 57);
-            this.nudPaletteOffset.Name = "nudPaletteOffset";
-            this.nudPaletteOffset.Size = new System.Drawing.Size(56, 20);
-            this.nudPaletteOffset.TabIndex = 28;
-            this.nudPaletteOffset.ValueChanged += new System.EventHandler(this.nudPaletteOffset_ValueChanged);
+            this.chkContinuousCycle.AutoSize = true;
+            this.chkContinuousCycle.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.chkContinuousCycle.Location = new System.Drawing.Point(281, 34);
+            this.chkContinuousCycle.Name = "chkContinuousCycle";
+            this.chkContinuousCycle.Size = new System.Drawing.Size(88, 17);
+            this.chkContinuousCycle.TabIndex = 29;
+            this.chkContinuousCycle.Text = "Cycle Palette";
+            this.chkContinuousCycle.UseVisualStyleBackColor = true;
+            this.chkContinuousCycle.CheckedChanged += new System.EventHandler(this.chkContinuousCycle_CheckedChanged);
+            // 
+            // timer2
+            // 
+            this.timer2.Enabled = true;
+            this.timer2.Interval = 20;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
             // MainForm
             // 
@@ -451,10 +472,10 @@
             this.SplitControlContainer.Panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitControlContainer)).EndInit();
             this.SplitControlContainer.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.nudPaletteOffset)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtMaxIterations)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.upDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMaxIterations)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudPaletteOffset)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -491,6 +512,8 @@
         private System.Windows.Forms.CheckBox checkLoop;
         private System.Windows.Forms.NumericUpDown txtMaxIterations;
         private System.Windows.Forms.NumericUpDown nudPaletteOffset;
+        private System.Windows.Forms.CheckBox chkContinuousCycle;
+        private System.Windows.Forms.Timer timer2;
     }
 }
 

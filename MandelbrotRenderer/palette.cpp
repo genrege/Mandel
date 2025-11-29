@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cmath>
 #include <cstring> 
 #include "palette.h"
 
@@ -20,6 +22,35 @@ void iteration_palette::update(unsigned max_iterations)
         palette_[max_iterations].r = 0;
         palette_[max_iterations].g = 0;
         palette_[max_iterations].b = 0;
+    }
+}
+
+void iteration_palette::update_for_buddha(unsigned* density, unsigned size_density)
+{
+    unsigned max_density = 0;
+    for (size_t i = 0; i < size_density; ++i)
+        if (density[i] > max_density) max_density = density[i];
+
+    if (palette_.allocate(max_density))
+    {
+        const double palette_scale = 1.0 / sqrt(max_density);
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(max_density); ++i)
+        {
+            if (i < 12)
+            {
+                palette_[i].r = (unsigned char)std::min(255.0, 255 * sqrt(0.5 * i) * palette_scale);
+                palette_[i].g = (unsigned char)std::min(255.0, 255 * sqrt(0.2 * i) * palette_scale);
+                palette_[i].b = (unsigned char)std::min(255.0, 255 * sqrt(0.8 * i) * palette_scale);
+            }
+            else
+            {
+                palette_[i].r = (unsigned char)std::min(255.0, 255 * sqrt(0.6 * i) * palette_scale);
+                palette_[i].g = (unsigned char)std::min(255.0, 255 * sqrt(0.5 * i) * palette_scale);
+                palette_[i].b = (unsigned char)std::min(255.0, 255 * sqrt(1.0 * i) * palette_scale);
+            }
+        }
     }
 }
 

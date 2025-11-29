@@ -45,6 +45,11 @@ public:
 		return false;
 	}
 
+	void zero_memory()
+	{
+		memset(memory_, 0, size_);
+	}
+
 	base_t* access()
 	{
 		return memory_;

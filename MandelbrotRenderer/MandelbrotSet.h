@@ -35,7 +35,7 @@ namespace fractals
         {
         }
 
-        void SetScale(double x0, double x1, double y0, double y1, unsigned wx, unsigned wy) restrict(cpu)
+        void SetScale(double x0, double x1, double y0, double y1, unsigned wx, unsigned wy) 
         {
             m_x0 = x0;
             m_x1 = x1;
@@ -56,7 +56,7 @@ namespace fractals
             }
         }
 
-
+        /*
         void CalculateBuddha(const accelerator_view& v, bool anti_buddha, const unsigned maxIters) restrict(cpu)
         {
             gpuCalculationDensity(v, anti_buddha, m_wx, m_wy, m_x0, m_x1, m_y0, m_y1, maxIters, m_density);
@@ -64,6 +64,7 @@ namespace fractals
             setPaletteBuddha(1 + maxIters, m_density, m_wx * m_wy);
             gpuPaletteKernel(v, m_wx * m_wy, m_density, m_bmp, maxIters, m_palette_buddha);
         }
+        */
 
         void setPaletteBuddha(size_t size, unsigned* density, unsigned size_density)
         {
@@ -137,51 +138,6 @@ namespace fractals
         }
 
 
-        static void gpuSpecialKernel(const accelerator_view& v, int func, const complex& k, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* iters)
-        {
-            const auto num_points = display_w * display_h;
-
-            const auto set_width  = x1 - x0;
-            const auto set_height = y1 - y0;
-
-            const auto set_step_x = set_width / double(display_w);
-            const auto set_step_y = set_height / double(display_h);
-
-            concurrency::extent<1> e(num_points);
-            concurrency::array_view<unsigned, 1> mandelbrotResult(e, iters);
-
-            concurrency::parallel_for_each(v, mandelbrotResult.extent,
-                [func, k, display_w, display_h, x0, y0, set_step_x, set_step_y, max_iter, mandelbrotResult](index<1> idx) restrict(amp, cpu)
-                {
-                    const auto array_x = idx[0] % display_w;
-                    const auto array_y = display_h - idx[0] / display_w;
-
-                    const auto re = x0 + array_x * set_step_x;
-                    const auto im = y0 + array_y * set_step_y;
-                    const complex c(re, im);
-
-                    switch(func){
-                    case  0: mandelbrotResult[idx] = CalculateSpecial_0(c, k, max_iter); break;
-                    case  1: mandelbrotResult[idx] = CalculateSpecial_1(c, k, max_iter); break;
-                    case  2: mandelbrotResult[idx] = CalculateSpecial_2(c, k, max_iter); break;
-                    case  3: mandelbrotResult[idx] = CalculateSpecial_3(c, k, max_iter); break;
-                    case  4: mandelbrotResult[idx] = CalculateSpecial_4(c, k, max_iter); break;
-                    case  5: mandelbrotResult[idx] = CalculateSpecial_5(c, k, max_iter); break;
-                    case  6: mandelbrotResult[idx] = CalculateSpecial_6(c, k, max_iter); break;
-                    case  7: mandelbrotResult[idx] = CalculateSpecial_7(c, k, max_iter); break;
-                    case  8: mandelbrotResult[idx] = CalculateSpecial_8(c, k, max_iter); break;
-                    case  9: mandelbrotResult[idx] = CalculateSpecial_9(c, k, max_iter); break;
-                    case 10: mandelbrotResult[idx] = CalculateSpecial_10(c, k, max_iter); break;
-                    case 11: mandelbrotResult[idx] = CalculateSpecial_11(c, k, max_iter); break;
-                    case 12: mandelbrotResult[idx] = CalculateSpecial_12(c, k, max_iter); break;
-                    case 13: mandelbrotResult[idx] = CalculateSpecial_13(c, k, max_iter); break;
-                    case 14: mandelbrotResult[idx] = CalculateSpecial_14(c, k, max_iter); break;
-                    }
-                });
-            mandelbrotResult.synchronize();
-            mandelbrotResult.discard_data();
-        }
-
         //This function's a bit crap because gpu threads write concurrently to the map without any synchronisation, 
         //so rendering the same image twice will probably give slightly different maps each time.
         //Also, unless you fix the bounds of the set (ie real/imaginary bounds) and the calculation step between 
@@ -189,6 +145,7 @@ namespace fractals
         //points change  whenever the view changes.
         //And this computation is relatively slow, probably because of the extra floating point calculations here.
         //Interesting to see the Mandelbrot "buddha" though!
+        /*
         static void gpuCalculationDensity(const accelerator_view& v, bool anti_buddha, unsigned display_w, unsigned display_h, double x0, double x1, double y0, double y1, unsigned max_iter, unsigned* dmap)
         {
             const auto num_points = display_w * display_h;
@@ -217,7 +174,7 @@ namespace fractals
                     const auto im = y0 + array_y * set_step_y;
                     const complex c(re, im);
 
-                    const bool escaped = anti_buddha ? false : kernel_amp::calculate_point(re, im,  max_iter) >= max_iter;
+                    const bool escaped = anti_buddha ? false : kernel_cpu::calculate_point(re, im,  max_iter) >= max_iter;
                     if (!escaped)
                     {
                         unsigned iters = 0;
@@ -257,13 +214,14 @@ namespace fractals
             concurrency::extent<1> ep(size_palette);
             concurrency::array_view<unsigned, 1> av_palette(ep, (unsigned*)palette);
 
-            concurrency::parallel_for_each(v, e, [av_iters, av_bmp, av_palette](index<1> idx) restrict(amp, cpu)
+            concurrency::parallel_for_each(v, e, [av_iters, av_bmp, av_palette](index<1> idx) 
                 {
                     av_bmp[idx] = av_palette[av_iters[idx]];
                 });
         }
+        */
 
-        inline static unsigned CalculateSpecial_0(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_0(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -281,7 +239,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_1(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_1(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -297,7 +255,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_2(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_2(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -312,7 +270,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_3(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_3(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -327,7 +285,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_4(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_4(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -342,7 +300,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_5(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_5(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -357,7 +315,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_6(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_6(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -372,7 +330,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_7(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_7(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -387,7 +345,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_8(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_8(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -402,7 +360,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_9(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_9(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -417,7 +375,7 @@ namespace fractals
             return iters;
         }
 
-        inline static unsigned CalculateSpecial_10(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_10(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -431,7 +389,7 @@ namespace fractals
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_11(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_11(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -445,21 +403,21 @@ namespace fractals
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_12(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_12(const complex& c, const complex& /*k*/, unsigned maxIters) 
         {
             unsigned iters = 0;
 
             complex z(c);
             while (iters < maxIters && SumSquares(z) <= 4.0)
             {
-                z = z * z + Sqrt(k + z);
+                z = z * Sqrt(z) + c;
 
                 ++iters;
             }
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_13(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_13(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -473,7 +431,7 @@ namespace fractals
 
             return iters;
         }
-        inline static unsigned CalculateSpecial_14(const complex& c, const complex& k, unsigned maxIters) restrict(amp, cpu)
+        inline static unsigned CalculateSpecial_14(const complex& c, const complex& k, unsigned maxIters) 
         {
             unsigned iters = 0;
 
@@ -486,17 +444,6 @@ namespace fractals
             }
 
             return iters;
-        }
-
-        inline unsigned ValueAt(size_t ix, size_t iy) 
-        {
-            const auto index = ix + m_wy * iy;
-            if (index < m_wx * m_wy)
-            {
-                m_bmp[index] = 0x00FFFFFF;
-                return m_arr[index];
-            }
-            return 0;
         }
 
     private:

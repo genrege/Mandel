@@ -277,6 +277,7 @@ namespace MandelbrotViewer
             else
                 DoZoom(e.Delta > 0, px, py, factor);
 
+            DoZoom(e.Delta > 0, px, py, factor);
         }
 
         private void Render()
@@ -287,56 +288,70 @@ namespace MandelbrotViewer
             var stopwatch = new Stopwatch();
             stopwatch.Restart();
 
+            var stopwatch_calc = new Stopwatch();
+            stopwatch.Restart();
+
+            float calctime_ms = 0;
+
             switch (FractalSetIndex)
             {
                 case 0:
                     MandelbrotAPI.RenderBasic(gpuIndex, hdc, useGpu, useCUDA, MaxIterations, Coord, PaletteOffset);
+                    calctime_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
                     break;
                 case 1:
                     MandelbrotAPI.RenderJulia(gpuIndex, hdc, useGpu, useCUDA, MaxIterations, JuliaSetX, JuliaSetY, Coord, PaletteOffset);
+                    calctime_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
                     break;
                 case 2:
-                    MandelbrotAPI.RenderBuddha(gpuIndex, hdc, MaxIterations, Coord);
+                    MandelbrotAPI.RenderBuddha(gpuIndex, useCUDA, hdc, MaxIterations, Coord, PaletteOffset);
+                    calctime_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
                     break;
                 case 3:
-                    MandelbrotAPI.RenderAntiBuddha(gpuIndex, hdc, MaxIterations, Coord);
+                    MandelbrotAPI.RenderAntiBuddha(gpuIndex, useCUDA, hdc, MaxIterations, Coord, PaletteOffset);
+                    calctime_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
                     break;
                 case 4:
                     {
-                        palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateMandelbrot(gpuIndex, useGpu, useCUDA, MaxIterations, Coord);
+                        calctime_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
+                        palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
                 case 5:
                     {
-                        palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         MandelbrotAPI.CalculateJulia2(gpuIndex, JuliaSetX, JuliaSetY, useGpu, useCUDA, MaxIterations, Coord, ref calculation_data_);
+                        calctime_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
+                        palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         MandelbrotAPI.PaletteTransform2(gpuIndex, calculation_data_, palette_, ref bitmap_);
                         MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap_);
                     }
                     break;
                 case 6:
                     {
-                        palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, false, MaxIterations, Coord);
+                        calctime_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
+                        palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
                 case 7:
                     {
-                        palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateBuddha(gpuIndex, true, MaxIterations, Coord);
+                        calctime_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
+                        palette_ = MandelbrotAPI.BuddhaPalette(MaxIterations);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
                     break;
                 case 8:
                     {
-                        palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         var calculation_data = MandelbrotAPI.CalculateSpecial(gpuIndex, SpecialFunc, JuliaSetX, JuliaSetY, useGpu, MaxIterations, Coord);
+                        calctime_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
+                        palette_ = MandelbrotAPI.StandardPalette(MaxIterations);
                         var bitmap = MandelbrotAPI.PaletteTransform(gpuIndex, calculation_data, palette_);
                         MandelbrotAPI.RenderArrayToDisplay(hdc, Coord.ScreenWidth, Coord.ScreenHeight, bitmap);
                     }
@@ -346,8 +361,10 @@ namespace MandelbrotViewer
             var frame_time_ms = 1000.0f * stopwatch.ElapsedTicks / Stopwatch.Frequency;
 
             gr.ReleaseHdc(hdc);
+            gr.FillRectangle(Brushes.Black, 0, 0, 150, 14);
             gr.DrawString(((int)frame_time_ms).ToString() + " ms", DefaultFont, Brushes.LightGreen, 0, 0);
-            gr.DrawString(frame_time_ms == 0 ? "XX fps" : ((int)(1000.0f / frame_time_ms)).ToString() + " fps", DefaultFont, Brushes.LightGreen, 50, 0);
+            gr.DrawString(((int)calctime_ms).ToString() + " ms", DefaultFont, Brushes.LightGreen, 50, 0);
+            gr.DrawString(frame_time_ms == 0 ? "XX fps" : ((int)(1000.0f / frame_time_ms)).ToString() + " fps", DefaultFont, Brushes.LightGreen, 100, 0);
             
 
             //gr.Dispose();
